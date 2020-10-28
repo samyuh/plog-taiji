@@ -1,41 +1,59 @@
-# Relatório
+# Relatório Intermédio - PLOG
 
-Grupo: Taiji_3
-Turma: 6
-Elementos:
+#### Jogo: Taiji
+**Grupo**: Taiji_3
+**Turma**: 6
+**Professor**: Daniel Castro Silva
+**Elementos**:
     - Diogo Samuel Gonçalves Fernandes (up201806250)
     - Paulo Jorge Salgado Marinho Ribeiro (up201806505)
 
-## Taiji_3
+---
+## Descrição do jogo - Taiji
 
-Taiji é um joog cujo objetivo é obter o maior número de quadrados da tua cor unidos.
+```Meter estar descição??
+TAIJI is a Chinese term that means ‘Great Duality’ and represents the fight of Good vs. Evil, Light vs. Darkness, YIN vs. YANG.
 
-TAIJI is a Chinese term that means ‘Great Duality’. TAIJI represents the fight of Good vs. Evil, Light vs. Darkness, YIN vs. YANG. But YIN and YANG are indivisible! That’s why both players use the same indivisible “dual” pieces. This piece is called TAIJITU. The goal of the game is to get the highest score summing up the largest shapes of connected squares of your colour by placing TAIJITUS anywhere you want in the board, as long as there’s a free space to do so. Be careful! Every time you put a TAIJITU you’re playing both colours! So you might be helping your opponent!
+But YIN and YANG are indivisible! That’s why both players use the same indivisible “dual” pieces called TAIJITUS.
+```
 
-### COMPONENTS
--A  TAIJI  board   consisting   of   a   grid   of   11x11squares.-60 rectangular pieces of 2 colours (TAIJITUS).
+Taiji é um jogo de tabuleiro. Este pode ter três dimensões diferentes, sendo elas 7x7, 9x9 ou 11x11.
 
-### SETUP
-Determine the size of the game (7x7, 9x9, 11x11).
-The 7x7 game is played on the inner 7x7 square. 
-The9x9 game is played on the inner 7x7 square plus thesurrounding  light square. 
-The 11x11 uses the  wholeboard.Determine the scoring type (1, 2 or 3 groups. See“game end”). 
+O objetivo é obter o maior conjunto de quadrados conectados da sua cor, colocando *Taijitus* no tabuleiro.
 
-I recommend using 1 group for the 7x7game, 2 groups for the 9x9 game and 3 groups for the11x11 game.Player’s colours (light/dark) are determined randomly.“Light” player starts. The players take alternate turnsduring the game.
+*Taijitus* são as peças do jogo. Estas contém ambas as cores, o preto e o branco.
+Deste modo, cada vez que um *Taijitu* é jogado, você está jogando com as duas cores, pelo que é possível estar a ajudar o jogo do seu oponente!
 
-### HOW TO PLAY
+O jogador branco começa e estes alternam de turno durante o jogo.
 
-On its turn, a player must place one TAIJITU on theboard as long as there is a free space to do so. A TAIJITU   can   only   be   placed   in   a   free   space   of   2connected squares.
+Sempre que for a sua vez de jogar, o jogador deve colocar um *Taijitu* no tabuleiro, desde que haja espaço livre para fazê-lo. Um *Taijitu* só pode ser colocado em um espaço livre de 2 quadrados conectados. Um quadrado é considerado conectado a outro quadrado se for horizontal ou verticalmente adjacente (não diagonalmente).
 
-### GAME END
-The game ends when there’s no free space to put aTAIJITU.The player with the highest score wins the game. Toget   your   score   sum   up   the   size   of   the  ‘n’ largestgroups  of your colour, with ‘n’ being the scoring typedetermined in the setup phase.To   determine   the   size   of   a   group   just   count   thesquares that conform it. A square is considered to beconnected   to   another   square   if   it   is   horizontally   orvertically adjacent (not diagonally). In case of a tie, the“Dark” player wins.
+O jogo termina quando não há espaço livre para colocar *Taijitus*. O jogador com a pontuação mais alta ganha o jogo. Para obter sua pontuação, some o tamanho dos 'n' maiores grupos de sua cor, com 'n' sendo o tipo de pontuação determinado na fase de configuração. Para determinar o tamanho de um grupo, basta contar os quadrados que o correspondem. Em caso de empate, o jogador “Dark” vence.
 
-### Tournament play:
-In a tournament, players must play twice, once with‘Light’ and once with ‘Dark’. Each player sums up itsscore playing “Light” and its score playing “Dark”. Theplayer with the highest total score wins the tournament.OMEGA SCORING VARIANT (ADVANCED)Your score is calculated by multiplying the sizes of allthe groups of your colour
+> Taiji Rules: https://nestorgames.com/rulebooks/TAIJI_EN4.pdf
 
-- 
-- descrição do jogo
-- representação interna do jogo
-- visualização do estado de jogo
+--- 
+## Representação interna do jogo
 
-> https://nestorgames.com/rulebooks/TAIJI_EN4.pdf
+Representação do tabuleiro (lista de listas com diferentes átomos para as peças)
+
+Jogador atual
+
+Peças capturadas ou por jogar
+
+Outras informação
+
+Código em prolog dos estados de jogo inicial, intermédio e final.
+
+---
+## Visualização do estado do jogo
+
+Descrição da implementação do predicado de visualização do estado de jogo.
+
+![Initial Board](./img/init-board.png)
+
+![Intermediate Board](./img/intermediate-board.png)
+
+![Final Board](./img/final-board.png)
+
+Representação dos três diferentes estados de jogo num tabuleiro 9x9
