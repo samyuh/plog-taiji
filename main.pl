@@ -7,8 +7,8 @@ play :-
     display_start_menu,
     input_dimensions(N),
     N \= exit,
-    nl, write('Initial board:'), nl, display_game('initial', N, 'Player1'), nl,
-    write('Intermediate board:'), nl, display_game('intermediate', 9, 'Player1'), nl,
-    write('Final board:'), nl, display_game('final', 9, 'Player1'), nl, !.
+    nl, write('Initial board:'), nl, initial(N, Gamestate), display_game(Gamestate, white), nl,
+    write('Intermediate board:'), nl, intermediateBoard(Gamestate2), display_game(Gamestate2, white), nl,
+    write('Final board:'), nl, finalBoard(Gamestate3), display_game(Gamestate3, white), nl, !.
 
 play :- nl, write('Exiting Game...'), nl.

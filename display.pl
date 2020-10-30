@@ -6,22 +6,26 @@ character(white, 'W').
 
 % -------------------------------------------------------------------------
 % player(Name, Symbol) -> returns the Symbol for the cell with name Name
-player('Player1', white).
-player('Player2', black).
+player(white, 'White Player').
+player(black, 'Black Player').
 
 /*
  display_game(Gamestate, Player) -> display the current Gamestate, and it's Player's turn
 */
-display_game('initial', N, _) :- initial(N, Gamestate), display_board(Gamestate, N).
-display_game('intermediate', N, _) :- intermediateBoard(Gamestate), display_board(Gamestate, N).
-display_game('final', N, _) :- finalBoard(Gamestate), display_board(Gamestate, N).
+
+display_game(Gamestate, Player) :- display_board(Gamestate), display_turn(Player).
 
 % display_board(Gamestate) -> display the current board (Gamestate), with NxN dimensions
-display_board(Gamestate, N) :-
+display_board(Gamestate) :-
+    length(Gamestate, N),
     nl, write('     '), print_numbers(1, N), nl,
     write('   _'), print_limits(N * 4), nl, nl,
     print_matrix(Gamestate, 1, N),
     write('   _'), print_limits(N * 4),  nl, nl.
+
+display_turn(Player) :-
+    player(Player, Name),
+    write(Name), write(' turn.'), nl.
 
 % ----------------------------------------------------------------------------------
 % print_numbers(Acc, N) -> prints a line of numbers, enumerating the columns
