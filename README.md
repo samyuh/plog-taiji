@@ -50,6 +50,8 @@ Código em prolog dos estados de jogo inicial, intermédio e final.
 
 Descrição da implementação do predicado de visualização do estado de jogo.
 
+Código em prolog de visualização
+
 ![Initial Board](./img/init-board.png)
 
 ![Intermediate Board](./img/intermediate-board.png)
