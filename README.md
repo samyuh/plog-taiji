@@ -29,9 +29,10 @@ O jogo termina quando não há espaço livre para colocar *Taijitus*. O jogador 
 --- 
 ## Representação interna do jogo
 
-O tabuleiro é representado como uma matriz de N colunas por N linhas. A matriz inicial é obtida de forma dinâmica, da seguinte forma:
+O tabuleiro é representado como uma matriz de N colunas por N linhas, pelo que vamos representá-lo como uma lista de listas, sendo cada sublista uma linha do tabuleiro. A matriz inicial é obtida de forma dinâmica, da seguinte forma:
 
 ```prolog
+% initial(N, M) -> creates the initial matrix M for the board, with dimensions N x N
 initial(N, M) :- init_board(N, N, [], M).
 
 init_board(0, _, M, M).
@@ -48,16 +49,20 @@ create_line(N, MI, M) :-
     create_line(N1, [empty|MI], M).
 ```
 
-# TO DO
-O jogador atual 
+Cada peça, denominada de *Taijitu* possui uma parte branca e preta, ocupando por isso duas casas do tabuleiro, uma para cada parte. Futuramente, cada peça vai ter o número da linha e coluna da parte branca da peça e a orientação (cima, direita, baixo, esquerda) de modo a conhecer a localização da parte preta. Identificamos as casas vazias com o caracter ' ' (espaço), as casas brancas com o caracter 'W' e as casas pretas com o caracter 'B'.
 
-Cada peça, denominada de *Taijitu* possui uma parte branca e preta.  Cada peça vai ter o número da linha e coluna da parte branca da peça e a orientação (cima, direita, baixo, esquerda) de modo a conhecer a localização da parte preta.
-
+```prolog
+% character(Name, Symbol) -> returns the Symbol for the cell with name Name
+character(empty, ' ').
+character(black, 'B').    
+character(white, 'W').
+```
 
 #### Diferentes estados de jogo
-O estado inicial de jogo vai ser uma matriz contendo apenas o valor empty.
 
-Uma possível representação de um estado de jogo intermédio pode ser o seguinte.
+O estado inicial de jogo vai ser uma matriz contendo apenas o valor empty, construída dinamicamente como foi referido acima.
+
+Uma possível representação de um estado de jogo intermédio, com algumas peças colocadas, mas espaços livres para colocar novas peças, pode ser o seguinte:
 ```prolog
 intermediateBoard([
     [black, white, empty, empty, empty, empty, empty, empty, empty],
@@ -71,7 +76,7 @@ intermediateBoard([
     [empty, empty, empty, empty, empty, empty, empty, empty, empty]
 ]).
 ```
-E uma representação final pode ser da seguinte forma.
+E uma representação final, em que já não é possível colocar mais nenhuma peça no tabuleiro, pode ser da seguinte forma:
 
 ```prolog
 finalBoard([
@@ -92,7 +97,9 @@ finalBoard([
 
 As funções que estão responsáveis pela visualização encontram-se no ficheiro [display.pl](display.pl).
 
-Para a visualização do tabuleiro do jogo, é utilizado **display_board**. A função *print_numbers* é utilizada na enumeração de 1 até N das linhas de jogo, *print_limits* é utilizada para a criação das barras laterais e *print_matrix* para a visualização da matriz de jogo.
+O predicado play chama o predicado *display_game(Gamestate, Player)*, que por sua vez chama *display_board(Gamestate)* seguido de *display_turn(Player)*. Desta forma, é apresentado o tabuleiro no estado recebido, e é indicado o jogador que deve jogar no turno. Posteriormente, serão adicionados aqui novos predicados, de maneira a receber e tratar os inputs dos jogadores.
+
+O predicado **display_board** efetua a visualização do tabuleiro, tanto das suas casas como da grelha númerica que permite aos utilizadores identificarem cada casa. A função *print_numbers* é utilizada para a enumeração de 1 até N das linhas de jogo, *print_limits* é utilizada para a criação dos limites superior e inferior (usando o caracter '_') e *print_matrix* para a visualização da matriz de jogo.
 ```prolog
 display_board(Gamestate, N) :-
     nl, write('     '), print_numbers(1, N), nl,
@@ -101,20 +108,11 @@ display_board(Gamestate, N) :-
     write('   _'), print_limits(N * 4),  nl, nl.
 ```
 
-A conversão entre os elementos que pertencem à matriz de jogo em carateres é feita através dos seguintes predicados.
-```prolog
-character(empty, ' ').
-character(black, 'B').    
-character(white, 'W').
-```
-
-### Exemplo
-É possível visualizar abaixo a visualização de três estados de jogo diferentes.
+### Exemplos
+Apresentam-se agora exemplos da visualização de três estados de jogo diferentes, num tabuleiro 9x9:
 
 ![Initial Board](./img/init-board.png)
 
 ![Intermediate Board](./img/intermediate-board.png)
 
 ![Final Board](./img/final-board.png)
-
-Representação dos três diferentes estados de jogo num tabuleiro 9x9

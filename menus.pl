@@ -39,7 +39,7 @@ check_option(O, N) :- O >= 0, O =< 3, option(O, N), !.
 check_option(_, N) :-
     write('Invalid Option. Board Dimensions?'),
     read(NewO),
-    check_dimensions_option(NewO, N).
+    check_option(NewO, N).
 
 % get_dimensions(O, N) -> Returns the dimensions of the board (N) based on the option chosen by the user (O) // OLD get_dimensions
 option(0, exit).
