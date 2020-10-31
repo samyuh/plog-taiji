@@ -16,7 +16,7 @@ Taiji é um jogo de tabuleiro, cujo nome significa "Grande Dualidade" e represen
 O objetivo é obter o maior conjunto de quadrados conectados da cor do jogador em questão, colocando *Taijitus* no tabuleiro.
 
 *Taijitus* são as peças do jogo. Cada peça contém uma parte preta e uma parte branca.  Isto acontece porque o Bem e o Mal são indivisíveis! Daí ambos os jogadores usarem as mesmas peças "duplas" indivisíveis.
-Deste modo, cada vez que um *Taijitu* é jogado são colocadas em tabuleiro ambas as cores, pelo que é possível estar a ajudar o jogo do seu oponente!
+Deste modo, cada vez que um *Taijitu* é jogado, são colocadas em tabuleiro ambas as cores, pelo que é possível estar a ajudar o jogo do seu oponente!
 
 O jogador branco inicia o jogo e estes alternam de turno durante o jogo, a cada peça jogada.
 
