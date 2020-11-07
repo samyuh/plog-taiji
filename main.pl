@@ -1,6 +1,8 @@
 :- consult('board.pl').
 :- consult('menus.pl').
 :- consult('display.pl').
+:- consult('logic.pl').
+
 
 % play -> Starts the game, with a N x N board. Player1 (white color) starts playing.
 play :-
@@ -9,8 +11,17 @@ play :-
     display_dimensions_menu,
     input(N, 0, 3, 'Board Dimensions? ', dimensions),
     N \= exit,
-    nl, write('Initial board:'), nl, initial(N, Gamestate), display_game(Gamestate, white), nl,
-    write('Intermediate board:'), nl, intermediateBoard(Gamestate2), display_game(Gamestate2, white), nl,
-    write('Final board:'), nl, finalBoard(Gamestate3), display_game(Gamestate3, white), nl, !.
+    nl, initial(N, InitialBoard), assert(state(white, InitialBoard)), display_game(InitialBoard, white),
+    repeat,
+        retract(state(Player, CurrentBoard)),
+        makeMove(Player, CurrentBoard, NextPlayer, NextBoard),
+        assert(state(NextPlayer, NextBoard)),
+        fail,
+        %endOfGame,
+    %showResult, 
+    !.
 
 play :- nl, write('Exiting Game...'), nl.
+
+%repeat.
+%repeat :- repeat.

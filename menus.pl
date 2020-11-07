@@ -66,18 +66,18 @@ input(N, FirstOpt, LastOpt, String, Type) :-
 
 % check_option(O, N, FirstOpt, LastOpt, String) -> Check if option chosen by the user (O) is valid, return the value of the option chosen (N) if so.
 check_option(O, N, FirstOpt, LastOpt, _, Type) :- O >= FirstOpt, O =< LastOpt, option(O, N, Type), !.
-check_option(_, N, FirstOpt, LastOpt, String, _) :-
+check_option(_, N, FirstOpt, LastOpt, String, Type) :-
     write('Invalid Option. '),
     write(String),
     read(NewO),
-    check_option(NewO, N, FirstOpt, LastOpt, String).
+    check_option(NewO, N, FirstOpt, LastOpt, String, Type).
 
 % option(O, N, Type) -> Returns the dimensions of the board (N) based on the option chosen by the user (O), considering its type (Type)
-option(0, exit, _).
+option(0, exit, dimensions).
+option(0, exit, players).
 option(1, 7, dimensions).
 option(2, 9, dimensions).
 option(3, 11, dimensions).
-option(1, 1, players).
-option(2, 2, players).
-option(3, 3, players).
+option(O, O, players).
+option(O, O, move).
 % -------------------------------------------------------------------------

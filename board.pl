@@ -19,7 +19,7 @@ create_line(N, MI, M) :-
 
 % ------------------------------------------------
 % Intermediate Board Matrix 9x9
-intermediateBoard([
+/*intermediateBoard([
     [black, white, empty, empty, empty, empty, empty, empty, empty],
     [black, white, black, empty, empty, empty, empty, empty, empty],
     [white, empty, empty, empty, empty, empty, empty, empty, empty],
@@ -29,12 +29,12 @@ intermediateBoard([
     [empty, empty, empty, empty, white, white, black, empty, empty],
     [empty, empty, empty, empty, empty, empty, empty, empty, empty],
     [empty, empty, empty, empty, empty, empty, empty, empty, empty]
-]).
+]).*/
 % ------------------------------------------------
 
 % ------------------------------------------------
 % Final Board Matrix 9x9
-finalBoard([
+/*finalBoard([
     [black, white, empty, white, black, empty, black, white, empty],
     [black, white, black, white, empty, white, black, black, white],
     [white, white, black, black, black, white, empty, white, white],
@@ -44,5 +44,5 @@ finalBoard([
     [white, white, white, black, white, white, black, black, black],
     [black, black, black, white, white, black, white, black, empty],
     [empty, white, black, black, white, black, white, white, black]
-]).
+]).*/
 % ------------------------------------------------
