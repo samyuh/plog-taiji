@@ -1,6 +1,36 @@
-% ----------------------------------------------------------------------
-% display_start_menu -> displays the starting menu of the game, with board dimensions options
-display_start_menu :-
+% ----------------------------------------------------------------------------------------------------------
+% display_players_menu -> displays the menu of the game in which the user can choose the type of game he wants
+display_players_menu :-
+    nl,nl,
+    write(' _______________________________________________________________________ '),nl,
+    write('|                                                                       |'),nl,
+    write('|                                                                       |'),nl,
+    write('|                           _____     _  _ _                            |'),nl,
+    write('|                          |_   _|_ _(_)(_|_)                           |'),nl,
+    write('|                            | |/ _` | || | |                           |'),nl,
+    write('|                            |_|\\__,_|_|/ |_|                           |'),nl,
+    write('|                                     |__/                              |'),nl,
+    write('|                                                                       |'),nl,
+    write('|                              Game Mode?                               |'),nl,
+    write('|                                                                       |'),nl,
+    write('|               ------------------------------------------              |'),nl,
+    write('|               |                                        |              |'),nl,
+    write('|               |         [1]  Player vs Player          |              |'),nl,
+    write('|               |                                        |              |'),nl,
+    write('|               |        [2]  Computer vs Player         |              |'),nl,
+    write('|               |                                        |              |'),nl,
+    write('|               |        [3]  Computer vs Computer       |              |'),nl,
+	write('|               |                                        |              |'),nl,
+    write('|               |                                        |              |'),nl,
+    write('|               |             [0] Exit Game              |              |'),nl,
+    write('|               ------------------------------------------              |'),nl,
+    write('|                                                                       |'),nl,
+    write('|_______________________________________________________________________|'),nl,nl,nl.
+% ----------------------------------------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------------------------------------
+% display_dimensions_menu -> displays the menu of the game in which the user can choose the board dimensions
+display_dimensions_menu :-
     nl,nl,
     write(' _______________________________________________________________________ '),nl,
     write('|                                                                       |'),nl,
@@ -26,24 +56,28 @@ display_start_menu :-
     write('|               ------------------------------------------              |'),nl,
     write('|                                                                       |'),nl,
     write('|_______________________________________________________________________|'),nl,nl,nl.
-% ----------------------------------------------------------------------
+% ----------------------------------------------------------------------------------------------------------
 
 % -------------------------------------------------------------------------
-% input_dimensions(N) -> Asks the user for the dimensions of the board (initial) // OLD INPUT_DIMENSIONS
-input(N) :-
+% input(N, FirstOpt, LastOpt, String, Type) -> Asks the user for an input N of type Type, which must be in the range [FirstOpt, LastOpt], or else a warning is shown, containing the explanation String
+input(N, FirstOpt, LastOpt, String, Type) :-
     write('Option: '), read(O),
-    check_option(O, N).
+    check_option(O, N, FirstOpt, LastOpt, String, Type).
 
-% check_dimensions_option(O, N) -> Check if option chosen by the user (O) is valid, return the dimensions chosen (N) if so. // OLD check_dimensions_option
-check_option(O, N) :- O >= 0, O =< 3, option(O, N), !.
-check_option(_, N) :-
-    write('Invalid Option. Board Dimensions?'),
+% check_option(O, N, FirstOpt, LastOpt, String) -> Check if option chosen by the user (O) is valid, return the value of the option chosen (N) if so.
+check_option(O, N, FirstOpt, LastOpt, _, Type) :- O >= FirstOpt, O =< LastOpt, option(O, N, Type), !.
+check_option(_, N, FirstOpt, LastOpt, String, _) :-
+    write('Invalid Option. '),
+    write(String),
     read(NewO),
-    check_option(NewO, N).
+    check_option(NewO, N, FirstOpt, LastOpt, String).
 
-% get_dimensions(O, N) -> Returns the dimensions of the board (N) based on the option chosen by the user (O) // OLD get_dimensions
-option(0, exit).
-option(1, 7).
-option(2, 9).
-option(3, 11).
+% option(O, N, Type) -> Returns the dimensions of the board (N) based on the option chosen by the user (O), considering its type (Type)
+option(0, exit, _).
+option(1, 7, dimensions).
+option(2, 9, dimensions).
+option(3, 11, dimensions).
+option(1, 1, players).
+option(2, 2, players).
+option(3, 3, players).
 % -------------------------------------------------------------------------

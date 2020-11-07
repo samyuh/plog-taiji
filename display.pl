@@ -1,8 +1,8 @@
 % -------------------------------------------------------------------------
 % character(Name, Symbol) -> returns the Symbol for the cell with name Name
 character(empty, ' ').
-character(black, 'B').    
-character(white, 'W').
+character(black, 'X').    
+character(white, 'O').
 
 % -------------------------------------------------------------------------
 % player(Name, Symbol) -> returns the Symbol for the cell with name Name
@@ -18,7 +18,7 @@ display_game(Gamestate, Player) :- display_board(Gamestate), display_turn(Player
 % display_board(Gamestate) -> display the current board (Gamestate), with NxN dimensions
 display_board(Gamestate) :-
     length(Gamestate, N),
-    nl, write('     '), print_numbers(1, N), nl,
+    nl, write('      '), print_numbers(1, N), nl,
     write('   _'), print_limits(N * 4), nl, nl,
     print_matrix(Gamestate, 1, N),
     write('   _'), print_limits(N * 4),  nl, nl.
@@ -62,7 +62,7 @@ print_matrix([L|M], Acc, N) :-
 print_line([]) :- write('|').
 print_line([Cell|L]) :-
     character(Cell, C),
-    write('['), write(C), write(']'), write(' '),
+    write('| '), write(C), write(' '),
     print_line(L).
 % ------------------------------------------------
 
