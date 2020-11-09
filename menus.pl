@@ -78,6 +78,10 @@ option(0, exit, players).
 option(1, 7, dimensions).
 option(2, 9, dimensions).
 option(3, 11, dimensions).
-option(O, O, players).
-option(O, O, move).
+option(Option, Option, players).
+option(Option, Option, move).
+option(1, up, orientation).
+option(2, down, orientation).
+option(3, left, orientation).
+option(4, right, orientation).
 % -------------------------------------------------------------------------

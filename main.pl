@@ -15,10 +15,11 @@ play :-
     repeat,
         retract(state(Player, CurrentBoard)),
         makeMove(Player, CurrentBoard, NextPlayer, NextBoard),
+        display_game(NextBoard, Player),
         assert(state(NextPlayer, NextBoard)),
         fail,
         %endOfGame,
-    %showResult, 
+    %showResult,
     !.
 
 play :- nl, write('Exiting Game...'), nl.
