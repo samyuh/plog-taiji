@@ -18,10 +18,14 @@ display_game(Gamestate, Player) :- display_board(Gamestate), display_turn(Player
 % display_board(Gamestate) -> display the current board (Gamestate), with NxN dimensions
 display_board(Gamestate) :-
     length(Gamestate, N),
-    nl, write('      '), print_numbers(1, N), nl,
-    write('   _'), print_limits(N * 4), nl, nl,
+    nl, write('      '), print_numbers(1, N), 
+    nl,
+    write('    \x250c\'), print_top(N),
+    nl, 
     print_matrix(Gamestate, 1, N),
-    write('   _'), print_limits(N * 4),  nl, nl.
+    write('    \x2514\'), print_bot(N),
+    nl, 
+    !.
 
 display_turn(Player) :-
     player(Player, Name),
@@ -53,33 +57,73 @@ print_matrix([L|M], Acc, N) :-  % write becomes more clean when Acc has 2 digits
     NewAcc is Acc + 1,
     print_matrix(M, NewAcc, N), !.
 print_matrix([L|M], Acc, N) :-
-    write(' '), write(Acc), write('| '),
-    print_line(L), nl,
+    write(' '), write(Acc), write('  '),
+    print_line(L), write('\n'),
+    print_limits(Acc, N),
     NewAcc is Acc + 1,
     print_matrix(M, NewAcc, N).
 
 % print_matrix(M) -> prints a single line of the board to the screen
-print_line([]) :- write('|').
+print_line([]) :- write('\x2502\').
 print_line([Cell|L]) :-
     character(Cell, C),
-    write('| '), write(C), write(' '),
+    write('\x2502\ '), write(C), write(' '),
     print_line(L).
+
 % ------------------------------------------------
 
 % ----------------------------------------------------------------------------------
 % print_limits(N) -> prints a line of "_", making top and bottom limits of the board
-print_limits(0).
-print_limits(N) :-
+print_limits(A, A).
+print_limits(Acc, 0) :- nl.
+print_limits(Acc, N) :-
+    write('    \x251c\'), 
+    print_middle(N).
+
+print_middle(0) :- nl.
+print_middle(N) :-
     N > 0,
     N1 is N - 1,
-    write('_'),
-    print_limits(N1).
+    write('\x2500\\x2500\\x2500\'),
+    print_middle_intersect(N),
+    print_middle(N1).
+
+print_top(0).
+print_top(N) :-
+    N > 0,
+    N1 is N - 1,
+    write('\x2500\\x2500\\x2500\'),
+    print_top_intersect(N),
+    print_top(N1).
+
+print_bot(0).
+print_bot(N) :-
+    N > 0,
+    N1 is N - 1,
+    write('\x2500\\x2500\\x2500\'),
+    print_bot_intersect(N),
+    print_bot(N1).
+
+print_middle_intersect(1) :-
+    write('\x2524\').
+print_middle_intersect(N) :-
+    write('\x253c\').
+
+print_top_intersect(1) :-
+    write('\x2510\').
+print_top_intersect(N) :-
+    write('\x252c\').
+
+print_bot_intersect(1) :-
+    write('\x2518\').
+print_bot_intersect(N) :-
+    write('\x2534\').
+
 % ----------------------------------------------------------------------------------
 
-% --------------------------------------------------------------------------------------
 % showFinalBoard(NextBoard) -> displays the FinalBoard, with no more possible moves left
 showFinalBoard(FinalBoard) :-
     nl, write('\t\t Final Board'), nl,
     display_board(FinalBoard).
 
-% --------------------------------------------------------------------------------------
+% ----------------------------------------------------------------------------------
