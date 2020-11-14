@@ -14,13 +14,14 @@ play :-
     input(N, 0, 3, 'Board Dimensions? ', dimensions),
     N \= exit,
     %nl, initial(N, InitialBoard), assert(state(white, InitialBoard)), display_game(InitialBoard, white),
-    nl, testBoard(InitialBoard), assert(state(white, InitialBoard)), display_game(InitialBoard, white),
+    nl, testBoard(InitialBoard), assert(state(white, InitialBoard)),
     repeat,
         retract(state(Player, CurrentBoard)),
+        display_game(CurrentBoard, Player),
         makeMove(Player, CurrentBoard, NextPlayer, NextBoard),
-        display_game(NextBoard, Player),
         assert(state(NextPlayer, NextBoard)),
         endOfGame(NextBoard),
+    showFinalBoard(NextBoard),
     %showResult,
     !.
 

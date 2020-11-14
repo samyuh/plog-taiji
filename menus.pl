@@ -15,7 +15,7 @@ display_players_menu :-
     write('|                                                                       |'),nl,
     write('|               ------------------------------------------              |'),nl,
     write('|               |                                        |              |'),nl,
-    write('|               |         [1]  Player vs Player          |              |'),nl,
+    write('|               |        [1]   Player vs Player          |              |'),nl,
     write('|               |                                        |              |'),nl,
     write('|               |        [2]  Computer vs Player         |              |'),nl,
     write('|               |                                        |              |'),nl,

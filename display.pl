@@ -75,3 +75,11 @@ print_limits(N) :-
     write('_'),
     print_limits(N1).
 % ----------------------------------------------------------------------------------
+
+% --------------------------------------------------------------------------------------
+% showFinalBoard(NextBoard) -> displays the FinalBoard, with no more possible moves left
+showFinalBoard(FinalBoard) :-
+    nl, write('\t\t Final Board'), nl,
+    display_board(FinalBoard).
+
+% --------------------------------------------------------------------------------------
