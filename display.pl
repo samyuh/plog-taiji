@@ -24,7 +24,8 @@ display_board(Gamestate) :-
     nl, 
     print_matrix(Gamestate, 1, N),
     write('    \x2514\'), print_bot(N),
-    nl.
+    nl, 
+    !.
 
 display_turn(Player) :-
     player(Player, Name),
@@ -77,7 +78,7 @@ print_limits(A, A).
 print_limits(Acc, 0) :- nl.
 print_limits(Acc, N) :-
     write('    \x251c\'), 
-    print_middle(N) .
+    print_middle(N).
 
 print_middle(0) :- nl.
 print_middle(N) :-
