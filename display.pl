@@ -75,8 +75,8 @@ print_line([Cell|L]) :-
 % ----------------------------------------------------------------------------------
 % print_limits(N) -> prints a line of "_", making top and bottom limits of the board
 print_limits(A, A).
-print_limits(Acc, 0) :- nl.
-print_limits(Acc, N) :-
+print_limits(_, 0) :- nl.
+print_limits(_, N) :-
     write('    \x251c\'), 
     print_middle(N).
 
@@ -106,17 +106,17 @@ print_bot(N) :-
 
 print_middle_intersect(1) :-
     write('\x2524\').
-print_middle_intersect(N) :-
+print_middle_intersect(_) :-
     write('\x253c\').
 
 print_top_intersect(1) :-
     write('\x2510\').
-print_top_intersect(N) :-
+print_top_intersect(_) :-
     write('\x252c\').
 
 print_bot_intersect(1) :-
     write('\x2518\').
-print_bot_intersect(N) :-
+print_bot_intersect(_) :-
     write('\x2534\').
 
 % ----------------------------------------------------------------------------------

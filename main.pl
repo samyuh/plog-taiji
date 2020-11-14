@@ -3,6 +3,7 @@
 :- consult('display.pl').
 :- consult('logic.pl').
 
+:- use_module(library(lists)).
 :- use_module(library(clpfd)).
 
 % play -> Starts the game, with a N x N board. Player1 (white color) starts playing.
