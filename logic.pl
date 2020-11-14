@@ -13,7 +13,7 @@ makeMove(Player, CurrentBoard, NextPlayer, NextBoard) :-
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
     valid_move(L, C, O, CurrentBoard),
     place_taijitu(CurrentBoard, L, C, O, NextBoard),
-    NextPlayer = Player, !.
+    next_player(Player, NextPlayer), !.
 
 makeMove(Player, CurrentBoard, NextPlayer, NextBoard) :- write('Invalid move!'), nl, makeMove(Player, CurrentBoard, NextPlayer, NextBoard).
 
@@ -75,6 +75,14 @@ change_cell_value(C, [Elem|CurrentRow], Symbol, AccC, AccRow, NewRow) :-
     NewAccC is AccC + 1,
     append(AccRow, [Elem], NewAccRow),
     change_cell_value(C, CurrentRow, Symbol, NewAccC, NewAccRow, NewRow).
+
+% -------------------------------------------------------------------------------------------------------------------------
+
+% ------------------------------------------------------ Change Player ------------------------------------------------------
+
+% next_player(Player, NextPlayer) -> returns the NextPlayer to place a Taijitu, based on the current Player
+next_player(white, black).
+next_player(black, white).
 
 % -------------------------------------------------------------------------------------------------------------------------
 

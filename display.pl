@@ -119,5 +119,11 @@ print_bot_intersect(1) :-
 print_bot_intersect(N) :-
     write('\x2534\').
 
+% ----------------------------------------------------------------------------------
+
+% showFinalBoard(NextBoard) -> displays the FinalBoard, with no more possible moves left
+showFinalBoard(FinalBoard) :-
+    nl, write('\t\t Final Board'), nl,
+    display_board(FinalBoard).
 
 % ----------------------------------------------------------------------------------
