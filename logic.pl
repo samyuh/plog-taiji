@@ -1,11 +1,13 @@
+% ------------------------------------------------------ Make a move ------------------------------------------------------
+
 % makeMove(Player, CurrentBoard, NextPlayer, NextBoard) -> 
 makeMove(Player, CurrentBoard, NextPlayer, NextBoard) :-
     length(CurrentBoard, Length),
     nl, write('Choose a cell for the white part of the Taijitu :'), nl, nl,
     write('Row? '),
     input(L, 1, Length, 'Row? ', move),
-    write('Collumn? '),
-    input(C, 1, Length, 'Collumn? ', move),
+    write('Column? '),
+    input(C, 1, Length, 'Column? ', move),
     write('Orientation of the black part (Up-1, Down-2, Left-3, Right-4)? '),
     input(O, 1, 4, 'Orientation of the black part? ', orientation),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
@@ -73,3 +75,35 @@ change_cell_value(C, [Elem|CurrentRow], Symbol, AccC, AccRow, NewRow) :-
     NewAccC is AccC + 1,
     append(AccRow, [Elem], NewAccRow),
     change_cell_value(C, CurrentRow, Symbol, NewAccC, NewAccRow, NewRow).
+
+% -------------------------------------------------------------------------------------------------------------------------
+
+% ------------------------------------------------------ End of game ------------------------------------------------------
+
+% endOfGame(Board) -> sucess if there's no more possible moves in the Board, fail otherwise
+endOfGame(Board) :-
+    (\+ search_move_rows(Board) ; \+ search_move_columns(Board)),
+    !, fail.
+
+endOfGame(_).
+
+% search_move_rows(Board) -> checks all rows of the Board, to find any horizontal placements of a Taijitu. Sucess if it found any possible move
+search_move_rows([]).
+search_move_rows([Row|Board]) :-
+    \+ row_move(Row),
+    search_move_rows(Board).
+
+% row_move(Row) -> sucess if a possible move was found in the given Row
+row_move([_]) :- fail.
+row_move([Elem1, Elem2|_]) :-
+    Elem1 == empty,
+    Elem2 == empty, !.
+row_move([_, Elem2|RestRow]) :-
+    row_move([Elem2|RestRow]).
+
+% search_move_columns(Board) -> checks all columns of the Board, to find any vertical placements of a Taijitu. Sucess if it found any possible move
+search_move_columns(Board) :-
+    clpfd:transpose(Board, TransposeBoard),
+    search_move_rows(TransposeBoard).
+
+% -------------------------------------------------------------------------------------------------------------------------
