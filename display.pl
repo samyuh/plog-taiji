@@ -1,18 +1,13 @@
-% -------------------------------------------------------------------------
 % character(Name, Symbol) -> returns the Symbol for the cell with name Name
 character(empty, ' ').
 character(black, 'X').    
 character(white, 'O').
 
-% -------------------------------------------------------------------------
-% player(Name, Symbol) -> returns the Symbol for the cell with name Name
+% player(Player, String) -> returns the String of Player to present to the screen 
 player(white, 'White Player').
 player(black, 'Black Player').
 
-/*
- display_game(Gamestate, Player) -> display the current Gamestate, and it's Player's turn
-*/
-
+% display_game(Gamestate, Player) -> display the current Gamestate, and it's Player's turn
 display_game(Gamestate, Player) :- display_board(Gamestate), display_turn(Player).
 
 % display_board(Gamestate) -> display the current board (Gamestate), with NxN dimensions
@@ -27,11 +22,11 @@ display_board(Gamestate) :-
     nl, 
     !.
 
+% display_turn(Player) -> display the Player to play in the current turn
 display_turn(Player) :-
     player(Player, Name),
     write(Name), write(' turn.'), nl.
 
-% ----------------------------------------------------------------------------------
 % print_numbers(Acc, N) -> prints a line of numbers, enumerating the columns
 print_numbers(N, N) :- write(N), !.
 print_numbers(Acc, N) :-    % write becomes more clean when Acc has 2 digits (no deformatting)

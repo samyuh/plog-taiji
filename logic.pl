@@ -26,7 +26,9 @@ valid_move(L, C, O, CurrentBoard) :-
 % get_value(Row, Column, CurrentBoard, Value) -> returns the Value of the cell with row Row and column Column in the CurrentBoard
 get_value(Row, Column, CurrentBoard, Value) :-
     nth1(Row, CurrentBoard, RowList),
-    nth1(Column, RowList, Value).
+    nth1(Column, RowList, Value), !.
+
+get_value(_, _, _, off_limits).
 
 % orientation(O, L, C, BL, BC) -> returns the line (BL) and collumn (BC) of the black part of the Taijitu, based on the line (L) and collumn (C) of the white part, and on the orientation (O) of the Taijitu
 orientation(O, L, C, BL, BC) :- O == up, BL is L - 1, BC = C.
@@ -88,3 +90,107 @@ search_move_columns(Board) :-
     search_move_rows(TransposeBoard).
 
 % -------------------------------------------------------------------------------------------------------------------------
+
+% ------------------------------------------------------ Calculate Results and Show Winner ------------------------------------------------------
+
+% showResult(Board) -> Calculates the results of the final Board and show the winner of the game
+showResult(Board) :-
+    calculateWinner(Board, Player, Number),
+    nl, write('The winner of the game is the '),
+    player(Player, String),
+    write(String), 
+    write(' with a maximum group of '),
+    write(Number), write(' Taijitus.'), nl. 
+
+% calculateWinner(Board, Player) -> Analyze the final Board and return the Player who has won the game
+calculateWinner(Board, Player, Number) :-
+    calculateMaximumNumber(white, Board, NumberWhite),
+    calculateMaximumNumber(black, Board, NumberBlack),
+    get_winner(NumberWhite, NumberBlack, Player, Number).
+
+calculateWinner(_, Player) :-
+    Player = black.
+
+get_winner(NumberWhite, NumberBlack, Player, Number) :-
+    NumberWhite > NumberBlack,
+    Player = white, Number = NumberWhite, !.
+
+get_winner(_, NumberBlack, Player, Number) :-
+    Player = black, Number = NumberBlack.
+
+% calculateMaximumNumber(Color,  Board, NumberColor) -> Return in NumberColor the number of cells of the biggest group with color Color, in the Board
+calculateMaximumNumber(Color, Board, NumberColor) :-
+    abolish(processed/2),
+    assert(processed(-1, -1)),      % MELHOR MANEIRA DO QUE ESTA PARA PREDICADO EXISTIR??
+    calculateLargestGroup(Color, 1-1, [], Board, 0, 0, NumberColor).
+
+% calculateLargestGroup(Color, Cell, Queue, Board, AccNumber, MaxNumber, NumberColor) -> Searching groups of color Color, Cell being explored (format: Line-Column), Queue has the cells to process in the currnt group,
+% Board is the final board, AccNumber has the number of cells processed of the current group, MaxNumber has the maximum number of cells of a group with color Color until the moment, NumberColor will have the number of cells of the biggest group of color Color
+
+% Final Case -> Cell being explored is the last in the Board ([Length, Length]) : Copy BiggestNumber to NumberColor
+calculateLargestGroup(_, Length-Length, [], Board, _, NumberColor, NumberColor) :-
+    length(Board, Length).
+
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with the desired Color : Process Cell and fill Queue with the next Cells of the group to process
+calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
+    get_value(L, C, Board, Color),
+    \+ processed(L, C),
+    assert(processed(L, C)),
+    get_next_cells(Color, L, C, Board, List),
+    List \= [],
+    calculateLargestGroup(Color, L-C, List, Board, 1, BiggestNumber, NumberColor), !.
+
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with different color of Color : Process Cell and explore the next cell
+calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
+    \+ get_value(L, C, Board, Color),
+    \+ processed(L, C),
+    assert(processed(L, C)),
+    Mod is mod(C, 9), NewC is Mod + 1,
+    DivInt is div(C, 9), NewL is L + DivInt,
+    calculateLargestGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor), !.
+
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a cell already processed : Ignore cell, and explore next cell
+calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
+    Mod is mod(C, 9), NewC is Mod + 1,
+    DivInt is div(C, 9), NewL is L + DivInt,
+    calculateLargestGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor).
+
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is not processed : Process adjacent cell, increase AccNumber and add its adjacent cells to Queue
+calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor) :-
+    \+ processed(OL, OC),
+    assert(processed(OL, OC)),
+    get_next_cells(Color, OL, OC, Board, NewCells),
+    append(List, NewCells, NewList),                                                
+    NewAccNumber is AccNumber + 1,
+    calculateLargestGroup(Color, L-C, NewList, Board, NewAccNumber, BiggestNumber, NumberColor), !.
+
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is already processed : Ignore adjacent cell
+calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor) :-
+    processed(OL, OC),                            
+    calculateLargestGroup(Color, L-C, List, Board, AccNumber, BiggestNumber, NumberColor), !.
+
+% Case where we finished processing a group (Empty Queue, AccNumber \= 0) : Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell
+calculateLargestGroup(Color, L-C, [], Board, AccNumber, BiggestNumber, NumberColor) :-
+    AccNumber > BiggestNumber,
+    Mod is mod(C, 9), NewC is Mod + 1,
+    DivInt is div(C, 9), NewL is L + DivInt,
+    calculateLargestGroup(Color, NewL-NewC, [], Board, 0, AccNumber, NumberColor), !.
+
+% get_next_cells(Color, Row, Column, Board, List) -> return in List the adjacent cells to the cell [Row, Column] in the Board, with color Color
+get_next_cells(Color, L, C, Board, List) :-
+    NextL is L + 1, PreviousL is L - 1, NextC is C + 1, PreviousC is C - 1,
+    get_value(PreviousL, C, Board, UpValue),
+    get_value(NextL, C, Board, DownValue),
+    get_value(L, PreviousC, Board, LeftValue),
+    get_value(L, NextC, Board, RightValue),
+    get_next([[PreviousL, C, UpValue], [NextL, C, DownValue], [L, PreviousC, LeftValue], [L, NextC, RightValue]], Color, [], List).
+
+get_next([], _, List, List).
+get_next([[L, C, Color]|Rest], Color, AccList, List) :-
+    append(AccList, [[L, C]], NewList),
+    \+ processed(L, C),
+    get_next(Rest, Color, NewList, List), !.
+get_next([[_, _, _]|Rest], Color, AccList, List) :-
+    get_next(Rest, Color, AccList, List).
+
+% -----------------------------------------------------------------------------------------------------------------------------------------------

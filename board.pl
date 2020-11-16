@@ -34,7 +34,7 @@ create_line(N, MI, M) :-
 
 % ------------------------------------------------
 % Final Board Matrix 9x9
-/*finalBoard([
+finalBoard([
     [black, white, empty, white, black, empty, black, white, empty],
     [black, white, black, white, empty, white, black, black, white],
     [white, white, black, black, black, white, empty, white, white],
@@ -44,7 +44,7 @@ create_line(N, MI, M) :-
     [white, white, white, black, white, white, black, black, black],
     [black, black, black, white, white, black, white, black, empty],
     [empty, white, black, black, white, black, white, white, black]
-]).*/
+]).
 % ------------------------------------------------
 
 
@@ -56,7 +56,7 @@ testBoard([
     [white, black, white, black, white, white, black, black, black],
     [black, black, white, white, empty, white, white, black, empty],
     [empty, black, white, black, black, black, empty, white, white],
-    [white, white, white, black, white, white, black, black, black],
+    [white, black, black, black, white, white, black, black, black],
     [black, black, black, white, white, black, white, black, empty],
-    [empty, white, black, black, white, black, white, white, black]
+    [black, black, black, black, white, black, white, white, black]
 ]).

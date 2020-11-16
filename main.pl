@@ -5,15 +5,26 @@
 
 :- use_module(library(lists)).
 :- use_module(library(clpfd)).
+:- use_module(library(aggregate)).
 
 % play -> Starts the game, with a N x N board. Player1 (white color) starts playing.
 play :-
     abolish(state/2),
-    display_players_menu,
-    input(_, 0, 3, 'Type of game? ', players),
-    display_dimensions_menu,
-    input(N, 0, 3, 'Board Dimensions? ', dimensions),
+    input_menu(G, N),
+    G \= exit,
     N \= exit,
+    start_game(G).
+    
+
+play :- nl, write('Exiting Game...'), nl.
+
+input_menu(G, N) :-
+    display_players_menu,
+    input(G, 0, 3, 'Type of game? ', players),
+    display_dimensions_menu,
+    input(N, 0, 3, 'Board Dimensions? ', dimensions).
+
+start_game(1) :-
     %nl, initial(N, InitialBoard), assert(state(white, InitialBoard)), display_game(InitialBoard, white),
     nl, testBoard(InitialBoard), assert(state(white, InitialBoard)),
     repeat,
@@ -23,10 +34,11 @@ play :-
         assert(state(NextPlayer, NextBoard)),
         endOfGame(NextBoard),
     showFinalBoard(NextBoard),
-    %showResult,
+    showResult(NextBoard),
     !.
 
-play :- nl, write('Exiting Game...'), nl.
+start_game(2) :-
+    write('2 option: to do').
 
-%repeat.
-%repeat :- repeat.
+start_game(3) :-
+    write('3 option: to do').

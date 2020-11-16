@@ -73,12 +73,14 @@ check_option(_, N, FirstOpt, LastOpt, String, Type) :-
     check_option(NewO, N, FirstOpt, LastOpt, String, Type).
 
 % option(O, N, Type) -> Returns the dimensions of the board (N) based on the option chosen by the user (O), considering its type (Type)
-option(0, exit, dimensions).
-option(0, exit, players).
 option(1, 7, dimensions).
 option(2, 9, dimensions).
 option(3, 11, dimensions).
+option(0, exit, dimensions).
+
 option(Option, Option, players).
+option(0, exit, players).
+
 option(Option, Option, move).
 option(1, up, orientation).
 option(2, down, orientation).
