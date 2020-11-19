@@ -47,8 +47,9 @@ print_numbers(Acc, N) :-
 print_matrix([], _, _).
 print_matrix([L|M], Acc, N) :-  % write becomes more clean when Acc has 2 digits (no deformatting)
     Acc > 9,
-    write(Acc), write('| '),
-    print_line(L), nl,
+    write(Acc), write('  '),
+    print_line(L), write('\n'),
+    print_limits(Acc, N),
     NewAcc is Acc + 1,
     print_matrix(M, NewAcc, N), !.
 print_matrix([L|M], Acc, N) :-

@@ -30,7 +30,7 @@ start_game(1, N) :-
     repeat,
         retract(state(Player, CurrentBoard)),
         display_game(CurrentBoard, Player),
-        makeMove(Player, CurrentBoard, NextPlayer, NextBoard),
+        makeMove(Player, CurrentBoard, NextPlayer, NextBoard, player),
         assert(state(NextPlayer, NextBoard)),
         endOfGame(NextBoard),
     showFinalBoard(NextBoard),
@@ -38,14 +38,16 @@ start_game(1, N) :-
     !.
 
 start_game(2, N) :-
-    write('Player Color? '),
+    display_ai_level,
+    input(Difficulty, 1, 2, 'AI difficulty? ', difficulty),
+    display_color_menu,
     input(Color, 1, 2, 'Player Color? ', color),
     nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
     repeat,
         retract(state(PlayerColor, CurrentBoard)),
         display_game(CurrentBoard, PlayerColor),
         return_player_type(Color, PlayerColor, PlayerType),
-        write('PLAYERTYTPE: '), write(PlayerType), nl,
+        write('PLAYERTYPE: '), write(PlayerType), nl,
         makeMove(PlayerColor, CurrentBoard, NextPlayerColor, NextBoard, PlayerType),
         assert(state(NextPlayerColor, NextBoard)),
         endOfGame(NextBoard),
@@ -53,5 +55,16 @@ start_game(2, N) :-
     showResult(NextBoard),
     !.
 
-start_game(3, _) :-
-    write('3 option: to do').
+start_game(3, N) :-
+    display_ai_level,
+    input(Difficulty, 1, 2, 'AI difficulty? ', difficulty),
+    nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
+    repeat,
+        retract(state(PlayerColor, CurrentBoard)),
+        display_game(CurrentBoard, PlayerColor),
+        makeMove(PlayerColor, CurrentBoard, NextPlayerColor, NextBoard, bot),
+        assert(state(NextPlayerColor, NextBoard)),
+        endOfGame(NextBoard),
+    showFinalBoard(NextBoard),
+    showResult(NextBoard),
+    !.

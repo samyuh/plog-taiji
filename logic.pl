@@ -1,6 +1,18 @@
-% ------------------------------------------------------ Make a move ------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                        Make a move                                                        %
+%   Prototype:                                                                                                              %
+%       makeMove(+Color, +CurrentBoard, -NextPlayer, -NextBoard, +PlayerType)                                               %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Color -> The color of the player to play in the current turn                                                        %
+%       CurrentBoard -> The state of the current board, before the move chosen by the player                                %
+%       PlayerType -> Type of the player to play in the current turn (player or bot)                                        %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       NextPlayer -> The color of the player to play in the next turn                                                      %
+%       NextBoard -> The state of the next board, after the move chosen by the player                                       %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
-% makeMove(Player, CurrentBoard, NextPlayer, NextBoard, PlayerType) -> 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     length(CurrentBoard, Length),
     nl, write('Choose a cell for the white part of the Taijitu :'), nl, nl,
@@ -15,14 +27,17 @@ makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     place_taijitu(CurrentBoard, L, C, O, NextBoard),
     next_player(Color, NextColor), !.
 
-% makeMove(Player, CurrentBoard, NextPlayer, NextBoard, PlayerType) -> 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, bot) :-
     moveBot(L, C, O, CurrentBoard),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
     place_taijitu(CurrentBoard, L, C, O, NextBoard),
     next_player(Color, NextColor), !.
 
-makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType) :- write('Invalid move!'), nl, makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType).
+makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType) :-
+    write('Invalid move!'), nl,
+    makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType).
+
+% ------------------------------------------------------------------------------------------------------------------------- %
 
 % valid_move(L, C, O, CurrentBoard) -> checks if the chosen location for the Taijitu (Line L, Collumn C, Orientation O) is valid in the CurrentBoard
 valid_move(L, C, O, CurrentBoard) :-
@@ -60,6 +75,7 @@ replace(L, _, _, L).
 
 % ----------------------------------------------------------- Move Bot ----------------------------------------------------------------
 
+% replace(OriginalList, Index, Element, NewList) -> Replace the element at the index Index of the OriginalList for the element Element, resulting in NewList
 moveBot(L, C, O, CurrentBoard) :-
     possibleMoves(CurrentBoard, [], PossibleMoves, 1-1),
     length(PossibleMoves, NumberMoves),
@@ -67,20 +83,15 @@ moveBot(L, C, O, CurrentBoard) :-
     random(1, LimitRandom, R),
     nth1(R, PossibleMoves, L-C-O).
     
-
-
-
-
-
-
 possibleMoves(CurrentBoard, Moves, Moves, Length-Length) :-
     length(CurrentBoard, Length), !.
 
 possibleMoves(CurrentBoard, AccMoves, Moves, L-C) :-
+    length(CurrentBoard, Length),
     possibleOrientations(CurrentBoard, L-C, [], PossibleMoves, [up, down, left, right]),
     append(AccMoves, PossibleMoves, NewAccMoves),
-    Mod is mod(C, 9), NewC is Mod + 1,
-    DivInt is div(C, 9), NewL is L + DivInt,
+    Mod is mod(C, Length), NewC is Mod + 1,
+    DivInt is div(C, Length), NewL is L + DivInt,
     possibleMoves(CurrentBoard, NewAccMoves, Moves, NewL-NewC).
 
 possibleOrientations(_, _, PossibleMoves, PossibleMoves, []).
@@ -193,14 +204,16 @@ calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
     \+ get_value(L, C, Board, Color),
     \+ processed(L, C),
     assert(processed(L, C)),
-    Mod is mod(C, 9), NewC is Mod + 1,
-    DivInt is div(C, 9), NewL is L + DivInt,
+    length(Board, Length),
+    Mod is mod(C, Length), NewC is Mod + 1,
+    DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor), !.
 
 % Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a cell already processed : Ignore cell, and explore next cell
 calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
-    Mod is mod(C, 9), NewC is Mod + 1,
-    DivInt is div(C, 9), NewL is L + DivInt,
+    length(Board, Length),
+    Mod is mod(C, Length), NewC is Mod + 1,
+    DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor).
 
 % Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is not processed : Process adjacent cell, increase AccNumber and add its adjacent cells to Queue
@@ -220,8 +233,9 @@ calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumb
 % Case where we finished processing a group (Empty Queue, AccNumber \= 0) : Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell
 calculateLargestGroup(Color, L-C, [], Board, AccNumber, BiggestNumber, NumberColor) :-
     AccNumber > BiggestNumber,
-    Mod is mod(C, 9), NewC is Mod + 1,
-    DivInt is div(C, 9), NewL is L + DivInt,
+    length(Board, Length),
+    Mod is mod(C, Length), NewC is Mod + 1,
+    DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestGroup(Color, NewL-NewC, [], Board, 0, AccNumber, NumberColor), !.
 
 % get_next_cells(Color, Row, Column, Board, List) -> return in List the adjacent cells to the cell [Row, Column] in the Board, with color Color
