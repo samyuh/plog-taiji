@@ -1,7 +1,7 @@
 % ------------------------------------------------------ Make a move ------------------------------------------------------
 
-% makeMove(Player, CurrentBoard, NextPlayer, NextBoard) -> 
-makeMove(Player, CurrentBoard, NextPlayer, NextBoard) :-
+% makeMove(Player, CurrentBoard, NextPlayer, NextBoard, PlayerType) -> 
+makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     length(CurrentBoard, Length),
     nl, write('Choose a cell for the white part of the Taijitu :'), nl, nl,
     write('Row? '),
@@ -13,9 +13,16 @@ makeMove(Player, CurrentBoard, NextPlayer, NextBoard) :-
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
     valid_move(L, C, O, CurrentBoard),
     place_taijitu(CurrentBoard, L, C, O, NextBoard),
-    next_player(Player, NextPlayer), !.
+    next_player(Color, NextColor), !.
 
-makeMove(Player, CurrentBoard, NextPlayer, NextBoard) :- write('Invalid move!'), nl, makeMove(Player, CurrentBoard, NextPlayer, NextBoard).
+% makeMove(Player, CurrentBoard, NextPlayer, NextBoard, PlayerType) -> 
+makeMove(Color, CurrentBoard, NextColor, NextBoard, bot) :-
+    moveBot(L, C, O, CurrentBoard),
+    write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
+    place_taijitu(CurrentBoard, L, C, O, NextBoard),
+    next_player(Color, NextColor), !.
+
+makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType) :- write('Invalid move!'), nl, makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType).
 
 % valid_move(L, C, O, CurrentBoard) -> checks if the chosen location for the Taijitu (Line L, Collumn C, Orientation O) is valid in the CurrentBoard
 valid_move(L, C, O, CurrentBoard) :-
@@ -51,13 +58,54 @@ replace([_|T], 1, X, [X|T]).
 replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
 replace(L, _, _, L).
 
-% -------------------------------------------------------------------------------------------------------------------------
+% ----------------------------------------------------------- Move Bot ----------------------------------------------------------------
+
+moveBot(L, C, O, CurrentBoard) :-
+    possibleMoves(CurrentBoard, [], PossibleMoves, 1-1),
+    length(PossibleMoves, NumberMoves),
+    LimitRandom is NumberMoves + 1,
+    random(1, LimitRandom, R),
+    nth1(R, PossibleMoves, L-C-O).
+    
+
+
+
+
+
+
+possibleMoves(CurrentBoard, Moves, Moves, Length-Length) :-
+    length(CurrentBoard, Length), !.
+
+possibleMoves(CurrentBoard, AccMoves, Moves, L-C) :-
+    possibleOrientations(CurrentBoard, L-C, [], PossibleMoves, [up, down, left, right]),
+    append(AccMoves, PossibleMoves, NewAccMoves),
+    Mod is mod(C, 9), NewC is Mod + 1,
+    DivInt is div(C, 9), NewL is L + DivInt,
+    possibleMoves(CurrentBoard, NewAccMoves, Moves, NewL-NewC).
+
+possibleOrientations(_, _, PossibleMoves, PossibleMoves, []).
+possibleOrientations(CurrentBoard, L-C, AccPossibleMoves, PossibleMoves, [O|Orientations]) :-
+    valid_move(L, C, O, CurrentBoard),
+    append(AccPossibleMoves, [L-C-O], NewAccPossibleMoves),
+    possibleOrientations(CurrentBoard, L-C, NewAccPossibleMoves, PossibleMoves, Orientations), !.
+possibleOrientations(CurrentBoard, L-C, AccPossibleMoves, PossibleMoves, [_|Orientations]) :-
+    possibleOrientations(CurrentBoard, L-C, AccPossibleMoves, PossibleMoves, Orientations).
+
+    
+
+
+% -------------------------------------------------------------------------------------------------------------------------------------
+
 
 % ------------------------------------------------------ Change Player ------------------------------------------------------
 
 % next_player(Player, NextPlayer) -> returns the NextPlayer to place a Taijitu, based on the current Player
 next_player(white, black).
 next_player(black, white).
+
+% return_player_type(Color, PlayerColor, player) -> returns the type of player to play in the current turn (player or bot), by comparing the current Color in the turn and the color chosen by the player
+return_player_type(PlayerColor, PlayerColor, player) :-!.
+return_player_type(_, _, bot).
 
 % -------------------------------------------------------------------------------------------------------------------------
 

@@ -6,6 +6,7 @@
 :- use_module(library(lists)).
 :- use_module(library(clpfd)).
 :- use_module(library(aggregate)).
+:- use_module(library(random)).
 
 % play -> Starts the game, with a N x N board. Player1 (white color) starts playing.
 play :-
@@ -13,7 +14,7 @@ play :-
     input_menu(G, N),
     G \= exit,
     N \= exit,
-    start_game(G).
+    start_game(G, N).
     
 
 play :- nl, write('Exiting Game...'), nl.
@@ -24,9 +25,8 @@ input_menu(G, N) :-
     display_dimensions_menu,
     input(N, 0, 3, 'Board Dimensions? ', dimensions).
 
-start_game(1) :-
-    %nl, initial(N, InitialBoard), assert(state(white, InitialBoard)), display_game(InitialBoard, white),
-    nl, testBoard(InitialBoard), assert(state(white, InitialBoard)),
+start_game(1, N) :-
+    nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
     repeat,
         retract(state(Player, CurrentBoard)),
         display_game(CurrentBoard, Player),
@@ -37,8 +37,21 @@ start_game(1) :-
     showResult(NextBoard),
     !.
 
-start_game(2) :-
-    write('2 option: to do').
+start_game(2, N) :-
+    write('Player Color? '),
+    input(Color, 1, 2, 'Player Color? ', color),
+    nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
+    repeat,
+        retract(state(PlayerColor, CurrentBoard)),
+        display_game(CurrentBoard, PlayerColor),
+        return_player_type(Color, PlayerColor, PlayerType),
+        write('PLAYERTYTPE: '), write(PlayerType), nl,
+        makeMove(PlayerColor, CurrentBoard, NextPlayerColor, NextBoard, PlayerType),
+        assert(state(NextPlayerColor, NextBoard)),
+        endOfGame(NextBoard),
+    showFinalBoard(NextBoard),
+    showResult(NextBoard),
+    !.
 
-start_game(3) :-
+start_game(3, _) :-
     write('3 option: to do').

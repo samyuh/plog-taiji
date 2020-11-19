@@ -86,4 +86,7 @@ option(1, up, orientation).
 option(2, down, orientation).
 option(3, left, orientation).
 option(4, right, orientation).
+
+option(1, white, color).
+option(2, black, color).
 % -------------------------------------------------------------------------
