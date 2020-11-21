@@ -32,9 +32,8 @@ start_game(1, N) :-
         display_game(CurrentBoard, Player),
         makeMove(Player, CurrentBoard, NextPlayer, NextBoard, player),
         assert(state(NextPlayer, NextBoard)),
-        endOfGame(NextBoard),
-    showFinalBoard(NextBoard),
-    showResult(NextBoard),
+        game_over(NextBoard, Winner-Number),
+    showResult(Winner, Number),
     !.
 
 start_game(2, N) :-
@@ -46,13 +45,12 @@ start_game(2, N) :-
     repeat,
         retract(state(PlayerColor, CurrentBoard)),
         display_game(CurrentBoard, PlayerColor),
-        return_player_type(Color, PlayerColor, PlayerType),
-        write('PLAYERTYPE: '), write(PlayerType), nl,
+        return_player_type(Color, PlayerColor, PlayerType, Difficulty),
+        %write('PLAYERTYPE: '), write(PlayerType), nl,
         makeMove(PlayerColor, CurrentBoard, NextPlayerColor, NextBoard, PlayerType),
         assert(state(NextPlayerColor, NextBoard)),
-        endOfGame(NextBoard),
-    showFinalBoard(NextBoard),
-    showResult(NextBoard),
+        game_over(NextBoard, Winner-Number),
+    showResult(Winner, Number),
     !.
 
 start_game(3, N) :-
@@ -62,9 +60,7 @@ start_game(3, N) :-
     repeat,
         retract(state(PlayerColor, CurrentBoard)),
         display_game(CurrentBoard, PlayerColor),
-        makeMove(PlayerColor, CurrentBoard, NextPlayerColor, NextBoard, bot),
+        makeMove(PlayerColor, CurrentBoard, NextPlayerColor, NextBoard, Difficulty),
         assert(state(NextPlayerColor, NextBoard)),
-        endOfGame(NextBoard),
-    showFinalBoard(NextBoard),
-    showResult(NextBoard),
-    !.
+        game_over(NextBoard, Winner-Number),
+    showResult(Winner, Number).

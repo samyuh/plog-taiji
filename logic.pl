@@ -24,13 +24,23 @@ makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     input(O, 1, 4, 'Orientation of the black part? ', orientation),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
     valid_move(L, C, O, CurrentBoard),
-    place_taijitu(CurrentBoard, L, C, O, NextBoard),
+    move(CurrentBoard, L-C-O, NextBoard),
     next_player(Color, NextColor), !.
 
-makeMove(Color, CurrentBoard, NextColor, NextBoard, bot) :-
-    moveBot(L, C, O, CurrentBoard),
+makeMove(Color, CurrentBoard, NextColor, NextBoard, random) :-
+    %moveBot(Color, L, C, O, CurrentBoard, random),
+    choose_move(CurrentBoard, Color, random, L-C-O),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
-    place_taijitu(CurrentBoard, L, C, O, NextBoard),
+    move(CurrentBoard, L-C-O, NextBoard),
+    next_player(Color, NextColor), !.
+
+makeMove(Color, CurrentBoard, NextColor, NextBoard, intelligent) :-
+    write('TO DO!!!'),
+    %moveBot(Color, L, C, O, CurrentBoard, intelligent),
+    choose_move(CurrentBoard, Color, intelligent, L-C-O),
+    write('AQUI OLE OLE'), nl, 
+    write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
+    move(CurrentBoard, L-C-O, NextBoard),
     next_player(Color, NextColor), !.
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType) :-
@@ -42,7 +52,7 @@ makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType) :-
 % valid_move(L, C, O, CurrentBoard) -> checks if the chosen location for the Taijitu (Line L, Collumn C, Orientation O) is valid in the CurrentBoard
 valid_move(L, C, O, CurrentBoard) :-
     get_value(L, C, CurrentBoard, empty),
-    orientation(O, L, C, BL, BC),
+    orientation(O, L-C, BL-BC),
     get_value(BL, BC, CurrentBoard, empty).
 
 % get_value(Row, Column, CurrentBoard, Value) -> returns the Value of the cell with row Row and column Column in the CurrentBoard
@@ -53,57 +63,63 @@ get_value(Row, Column, CurrentBoard, Value) :-
 get_value(_, _, _, off_limits).
 
 % orientation(O, L, C, BL, BC) -> returns the line (BL) and collumn (BC) of the black part of the Taijitu, based on the line (L) and collumn (C) of the white part, and on the orientation (O) of the Taijitu
-orientation(O, L, C, BL, BC) :- O == up, BL is L - 1, BC = C.
-orientation(O, L, C, BL, BC) :- O == down, BL is L + 1, BC = C.
-orientation(O, L, C, BL, BC) :- O == left, BL = L, BC is C - 1.
-orientation(O, L, C, BL, BC) :- O == right, BL = L, BC is C + 1.
+orientation(O, L-C, BL-BC) :- O == up, BL is L - 1, BC = C.
+orientation(O, L-C, BL-BC) :- O == down, BL is L + 1, BC = C.
+orientation(O, L-C, BL-BC) :- O == left, BL = L, BC is C - 1.
+orientation(O, L-C, BL-BC) :- O == right, BL = L, BC is C + 1.
 
-% place_taijitu(CurrentBoard, L, C, O, NextBoard) -> places a Taijitu with the white part in cell with row L and collumn C, and orientation O, in CurrentBoard, resulting in NextBoard
-place_taijitu(CurrentBoard, L, C, O, NextBoard) :-
-    orientation(O, L, C, BL, BC),
-    nth1(L, CurrentBoard, RowBeforeWhite),
+% move(GameState, L-C-O, NewGameState) -> places a Taijitu with the white part in cell with row L and collumn C, and orientation O, in the current GameState, resulting in NewGameState
+move(GameState, L-C-O, NewGameState) :-
+    orientation(O, L-C, BL-BC),
+    nth1(L, GameState, RowBeforeWhite),
     replace(RowBeforeWhite, C, white, RowPlacedWhite),
-    replace(CurrentBoard, L, RowPlacedWhite, BoardPlacedWhite),
+    replace(GameState, L, RowPlacedWhite, BoardPlacedWhite),
     nth1(BL, BoardPlacedWhite, RowBeforeBlack),
     replace(RowBeforeBlack, BC, black, RowPlacedBlack),
-    replace(BoardPlacedWhite, BL, RowPlacedBlack, NextBoard).
+    replace(BoardPlacedWhite, BL, RowPlacedBlack, NewGameState).
 
 % replace(OriginalList, Index, Element, NewList) -> Replace the element at the index Index of the OriginalList for the element Element, resulting in NewList
-replace([_|T], 1, X, [X|T]).
+replace([_|T], 1, X, [X|T]):- !.
 replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
 replace(L, _, _, L).
 
 % ----------------------------------------------------------- Move Bot ----------------------------------------------------------------
+% lista_ate(N, L) -> devolve a lista L de todos os números inteiros entre 1 e N -> APAGAR E USAR BETWEEN? Nao funciona o between...
+lista_ate(1, [1]).
+lista_ate(N, L) :-
+    N > 1,
+    N1 is N-1,
+    lista_ate(N1, L2),
+    append(L2, [N], L).
 
-% replace(OriginalList, Index, Element, NewList) -> Replace the element at the index Index of the OriginalList for the element Element, resulting in NewList
-moveBot(L, C, O, CurrentBoard) :-
-    possibleMoves(CurrentBoard, [], PossibleMoves, 1-1),
+% Prototype in the Project Enunciate -> valid_moves(+GameState, +Player, -ListOfMoves)
+valid_moves(GameState, _, ListOfMoves) :-
+    length(GameState, Length),
+    lista_ate(Length, RangeList),
+    findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves).
+
+% choose_move(+GameState, +Player, +Level, -Move)
+choose_move(GameState, Player, random, L-C-O) :-
+    valid_moves(GameState, Player, PossibleMoves),
     length(PossibleMoves, NumberMoves),
     LimitRandom is NumberMoves + 1,
     random(1, LimitRandom, R),
     nth1(R, PossibleMoves, L-C-O).
-    
-possibleMoves(CurrentBoard, Moves, Moves, Length-Length) :-
-    length(CurrentBoard, Length), !.
 
-possibleMoves(CurrentBoard, AccMoves, Moves, L-C) :-
-    length(CurrentBoard, Length),
-    possibleOrientations(CurrentBoard, L-C, [], PossibleMoves, [up, down, left, right]),
-    append(AccMoves, PossibleMoves, NewAccMoves),
-    Mod is mod(C, Length), NewC is Mod + 1,
-    DivInt is div(C, Length), NewL is L + DivInt,
-    possibleMoves(CurrentBoard, NewAccMoves, Moves, NewL-NewC).
+choose_move(GameState, Player, intelligent, L-C-O) :-
+    valid_moves(GameState, Player, PossibleMoves),
+    length(GameState, Length),
+    lista_ate(Length, RangeList),
+    setof(Move, calculateValueMove(GameState, Player, RangeList, PossibleMoves, Move), [_-L-C-O|_]).
 
-possibleOrientations(_, _, PossibleMoves, PossibleMoves, []).
-possibleOrientations(CurrentBoard, L-C, AccPossibleMoves, PossibleMoves, [O|Orientations]) :-
-    valid_move(L, C, O, CurrentBoard),
-    append(AccPossibleMoves, [L-C-O], NewAccPossibleMoves),
-    possibleOrientations(CurrentBoard, L-C, NewAccPossibleMoves, PossibleMoves, Orientations), !.
-possibleOrientations(CurrentBoard, L-C, AccPossibleMoves, PossibleMoves, [_|Orientations]) :-
-    possibleOrientations(CurrentBoard, L-C, AccPossibleMoves, PossibleMoves, Orientations).
-
-    
-
+calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-L-C-O) :-
+    member(L, RangeList),
+    member(C, RangeList),
+    member(O, [up, down, left, right]),
+    member(L-C-O, PossibleMoves),
+    move(GameState, L-C-O, NewGameState),
+    value(NewGameState, Color, Value),
+    SymmetricalValue is -Value.
 
 % -------------------------------------------------------------------------------------------------------------------------------------
 
@@ -115,12 +131,17 @@ next_player(white, black).
 next_player(black, white).
 
 % return_player_type(Color, PlayerColor, player) -> returns the type of player to play in the current turn (player or bot), by comparing the current Color in the turn and the color chosen by the player
-return_player_type(PlayerColor, PlayerColor, player) :-!.
-return_player_type(_, _, bot).
+return_player_type(PlayerColor, PlayerColor, player, _) :-!.
+return_player_type(_, _, Difficulty, Difficulty).
 
 % -------------------------------------------------------------------------------------------------------------------------
 
 % ------------------------------------------------------ End of game ------------------------------------------------------
+
+game_over(GameState, Player-Number) :-
+    endOfGame(GameState),
+    showFinalBoard(GameState),
+    calculateWinner(GameState, Player, Number).                                                          
 
 % endOfGame(Board) -> sucess if there's no more possible moves in the Board, fail otherwise
 endOfGame(Board) :-
@@ -153,22 +174,18 @@ search_move_columns(Board) :-
 % ------------------------------------------------------ Calculate Results and Show Winner ------------------------------------------------------
 
 % showResult(Board) -> Calculates the results of the final Board and show the winner of the game
-showResult(Board) :-
-    calculateWinner(Board, Player, Number),
+showResult(Winner, Number) :-
     nl, write('The winner of the game is the '),
-    player(Player, String),
-    write(String), 
+    player(Winner, String),
+    write(String),
     write(' with a maximum group of '),
-    write(Number), write(' Taijitus.'), nl. 
+    write(Number), write(' Taijitus.'), nl.
 
 % calculateWinner(Board, Player) -> Analyze the final Board and return the Player who has won the game
 calculateWinner(Board, Player, Number) :-
-    calculateMaximumNumber(white, Board, NumberWhite),
-    calculateMaximumNumber(black, Board, NumberBlack),
+    value(Board, white, NumberWhite),
+    value(Board, black, NumberBlack),
     get_winner(NumberWhite, NumberBlack, Player, Number).
-
-calculateWinner(_, Player) :-
-    Player = black.
 
 get_winner(NumberWhite, NumberBlack, Player, Number) :-
     NumberWhite > NumberBlack,
@@ -177,8 +194,8 @@ get_winner(NumberWhite, NumberBlack, Player, Number) :-
 get_winner(_, NumberBlack, Player, Number) :-
     Player = black, Number = NumberBlack.
 
-% calculateMaximumNumber(Color,  Board, NumberColor) -> Return in NumberColor the number of cells of the biggest group with color Color, in the Board
-calculateMaximumNumber(Color, Board, NumberColor) :-
+% value(Color,  Board, NumberColor) -> Return in NumberColor the number of cells of the biggest group with color Color, in the Board
+value(Board, Color, NumberColor) :-
     abolish(processed/2),
     assert(processed(-1, -1)),      % MELHOR MANEIRA DO QUE ESTA PARA PREDICADO EXISTIR??
     calculateLargestGroup(Color, 1-1, [], Board, 0, 0, NumberColor).
@@ -227,7 +244,7 @@ calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumb
 
 % Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is already processed : Ignore adjacent cell
 calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor) :-
-    processed(OL, OC),                            
+    processed(OL, OC),
     calculateLargestGroup(Color, L-C, List, Board, AccNumber, BiggestNumber, NumberColor), !.
 
 % Case where we finished processing a group (Empty Queue, AccNumber \= 0) : Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell
@@ -254,5 +271,3 @@ get_next([[L, C, Color]|Rest], Color, AccList, List) :-
     get_next(Rest, Color, NewList, List), !.
 get_next([[_, _, _]|Rest], Color, AccList, List) :-
     get_next(Rest, Color, AccList, List).
-
-% -----------------------------------------------------------------------------------------------------------------------------------------------
