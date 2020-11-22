@@ -28,17 +28,13 @@ makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     next_player(Color, NextColor), !.
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, random) :-
-    %moveBot(Color, L, C, O, CurrentBoard, random),
     choose_move(CurrentBoard, Color, random, L-C-O),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
     move(CurrentBoard, L-C-O, NextBoard),
     next_player(Color, NextColor), !.
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, intelligent) :-
-    write('TO DO!!!'),
-    %moveBot(Color, L, C, O, CurrentBoard, intelligent),
     choose_move(CurrentBoard, Color, intelligent, L-C-O),
-    write('AQUI OLE OLE'), nl, 
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
     move(CurrentBoard, L-C-O, NextBoard),
     next_player(Color, NextColor), !.
@@ -110,7 +106,12 @@ choose_move(GameState, Player, intelligent, L-C-O) :-
     valid_moves(GameState, Player, PossibleMoves),
     length(GameState, Length),
     lista_ate(Length, RangeList),
-    setof(Move, calculateValueMove(GameState, Player, RangeList, PossibleMoves, Move), [_-L-C-O|_]).
+    setof(Move, calculateValueMove(GameState, Player, RangeList, PossibleMoves, Move), Moves),
+    select_best_moves(Moves, [], BestMoves, _),
+    length(BestMoves, NumberMoves),
+    LimitRandom is NumberMoves + 1,
+    random(1, LimitRandom, R),
+    nth1(R, BestMoves, _-L-C-O).
 
 calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-L-C-O) :-
     member(L, RangeList),
@@ -120,6 +121,18 @@ calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-
     move(GameState, L-C-O, NewGameState),
     value(NewGameState, Color, Value),
     SymmetricalValue is -Value.
+
+select_best_moves([V-L-C-O|Moves], [], BestMoves, _) :-
+    select_best_moves(Moves, [V-L-C-O], BestMoves, V), !.
+
+select_best_moves([], BestMoves, BestMoves, _) :- !.
+
+select_best_moves([V-_-_-_|_], BestMoves, BestMoves, BestValue) :-
+    V > BestValue, !.
+
+select_best_moves([V-L-C-O|Moves], AccMoves, BestMoves, BestValue) :-
+    append(AccMoves, [V-L-C-O], NewAccMoves),
+    select_best_moves(Moves, NewAccMoves, BestMoves, BestValue).
 
 % -------------------------------------------------------------------------------------------------------------------------------------
 
@@ -271,3 +284,8 @@ get_next([[L, C, Color]|Rest], Color, AccList, List) :-
     get_next(Rest, Color, NewList, List), !.
 get_next([[_, _, _]|Rest], Color, AccList, List) :-
     get_next(Rest, Color, AccList, List).
+
+% -------------------------------------------------------------------------------------------------------------------------
+
+next_difficulty(white, DifficultyWhite, _, DifficultyWhite).
+next_difficulty(black, _, DifficultyBlack, DifficultyBlack).
