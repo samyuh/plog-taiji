@@ -25,7 +25,8 @@ display_board(Gamestate) :-
 % display_turn(Player) -> display the Player to play in the current turn
 display_turn(Player) :-
     player(Player, Name),
-    write(Name), write(' turn.'), nl.
+    character(Player, Symbol),
+    nl, write(Name), write(' turn. ('), write(Symbol), write(')'), nl.
 
 % print_numbers(Acc, N) -> prints a line of numbers, enumerating the columns
 print_numbers(N, N) :- write(N), !.
@@ -119,7 +120,18 @@ print_bot_intersect(_) :-
 
 % showFinalBoard(NextBoard) -> displays the FinalBoard, with no more possible moves left
 showFinalBoard(FinalBoard) :-
+    length(FinalBoard, 7),
+    nl, write('\t     Final Board'), nl,
+    display_board(FinalBoard).
+
+showFinalBoard(FinalBoard) :-
+    length(FinalBoard, 9),
     nl, write('\t\t Final Board'), nl,
+    display_board(FinalBoard).
+
+showFinalBoard(FinalBoard) :-
+    length(FinalBoard, 11),
+    nl, write('\t\t     Final Board'), nl,
     display_board(FinalBoard).
 
 % ----------------------------------------------------------------------------------

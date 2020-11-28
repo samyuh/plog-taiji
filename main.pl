@@ -7,6 +7,7 @@
 :- use_module(library(clpfd)).
 :- use_module(library(aggregate)).
 :- use_module(library(random)).
+:- use_module(library(system)).
 
 % play -> Starts the game, with a N x N board. Player1 (white color) starts playing.
 play :-
@@ -15,7 +16,6 @@ play :-
     G \= exit,
     N \= exit,
     start_game(G, N).
-    
 
 play :- nl, write('Exiting Game...'), nl.
 
@@ -54,9 +54,9 @@ start_game(2, N) :-
 
 start_game(3, N) :-
     display_ai_level,
-    write('White Color Bot Level: (1-random, 2-intelligent)'),
+    write('White Color Bot Level? (1-random, 2-intelligent): '),
     input(DifficultyWhite, 1, 2, 'White Color Bot Level? ', difficulty),
-    write('Black Color Bot Level: (1-random, 2-intelligent)'),
+    write('Black Color Bot Level? (1-random, 2-intelligent): '),
     input(DifficultyBlack, 1, 2, 'Black Color Bot Level? ', difficulty),
     nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
     repeat,
@@ -65,5 +65,6 @@ start_game(3, N) :-
         next_difficulty(PlayerColor, DifficultyWhite, DifficultyBlack, Difficulty),
         makeMove(PlayerColor, CurrentBoard, NextPlayerColor, NextBoard, Difficulty),
         assert(state(NextPlayerColor, NextBoard)),
+        sleep(1),
         game_over(NextBoard, Winner-Number),
     showResult(Winner, Number).

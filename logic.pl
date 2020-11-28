@@ -15,28 +15,30 @@
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     length(CurrentBoard, Length),
-    nl, write('Choose a cell for the white part of the Taijitu :'), nl, nl,
+    next_player(Color, NextColor),
+    nl, write('Choose a cell for the '), write(Color), write(' part of the Taijitu :'), nl, nl,
     write('Row? '),
     input(L, 1, Length, 'Row? ', move),
     write('Column? '),
     input(C, 1, Length, 'Column? ', move),
-    write('Orientation of the black part (Up-1, Down-2, Left-3, Right-4)? '),
-    input(O, 1, 4, 'Orientation of the black part? ', orientation),
+    write('Orientation of the '), write(NextColor), write(' part (Up-1, Down-2, Left-3, Right-4)? '),
+    atom_concat('Orientation of the ', NextColor, HalfString),
+    atom_concat(HalfString, ' part? ', String),
+    input(O, 1, 4, String, orientation),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
     valid_move(L, C, O, CurrentBoard),
-    move(CurrentBoard, L-C-O, NextBoard),
-    next_player(Color, NextColor), !.
+    move(CurrentBoard, L-C-O-Color, NextBoard), !.
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, random) :-
     choose_move(CurrentBoard, Color, random, L-C-O),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
-    move(CurrentBoard, L-C-O, NextBoard),
+    move(CurrentBoard, L-C-O-Color, NextBoard),
     next_player(Color, NextColor), !.
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, intelligent) :-
     choose_move(CurrentBoard, Color, intelligent, L-C-O),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
-    move(CurrentBoard, L-C-O, NextBoard),
+    move(CurrentBoard, L-C-O-Color, NextBoard),
     next_player(Color, NextColor), !.
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType) :-
@@ -65,13 +67,14 @@ orientation(O, L-C, BL-BC) :- O == left, BL = L, BC is C - 1.
 orientation(O, L-C, BL-BC) :- O == right, BL = L, BC is C + 1.
 
 % move(GameState, L-C-O, NewGameState) -> places a Taijitu with the white part in cell with row L and collumn C, and orientation O, in the current GameState, resulting in NewGameState
-move(GameState, L-C-O, NewGameState) :-
+move(GameState, L-C-O-Color, NewGameState) :-
     orientation(O, L-C, BL-BC),
     nth1(L, GameState, RowBeforeWhite),
-    replace(RowBeforeWhite, C, white, RowPlacedWhite),
+    replace(RowBeforeWhite, C, Color, RowPlacedWhite),
     replace(GameState, L, RowPlacedWhite, BoardPlacedWhite),
     nth1(BL, BoardPlacedWhite, RowBeforeBlack),
-    replace(RowBeforeBlack, BC, black, RowPlacedBlack),
+    next_player(Color, NextColor),
+    replace(RowBeforeBlack, BC, NextColor, RowPlacedBlack),
     replace(BoardPlacedWhite, BL, RowPlacedBlack, NewGameState).
 
 % replace(OriginalList, Index, Element, NewList) -> Replace the element at the index Index of the OriginalList for the element Element, resulting in NewList
@@ -118,8 +121,8 @@ calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-
     member(C, RangeList),
     member(O, [up, down, left, right]),
     member(L-C-O, PossibleMoves),
-    move(GameState, L-C-O, NewGameState),
-    value(NewGameState, Color, Value),
+    move(GameState, L-C-O-Color, NewGameState),
+    best_possible_value(NewGameState, Color, Value, _),
     SymmetricalValue is -Value.
 
 select_best_moves([V-L-C-O|Moves], [], BestMoves, _) :-
@@ -213,6 +216,12 @@ value(Board, Color, NumberColor) :-
     assert(processed(-1, -1)),      % MELHOR MANEIRA DO QUE ESTA PARA PREDICADO EXISTIR??
     calculateLargestGroup(Color, 1-1, [], Board, 0, 0, NumberColor).
 
+% value(Color,  Board, NumberColor) -> Return in NumberColor the number of cells of the biggest group with color Color, in the Board, which can be extended (it is not surrounded by other color)
+best_possible_value(Board, Color, NumberColor, BiggestGroup) :-
+    abolish(processed/2),
+    assert(processed(-1, -1)),      % MELHOR MANEIRA DO QUE ESTA PARA PREDICADO EXISTIR??
+    calculateLargestPossibleGroup(Color, 1-1, [], Board, 0, 0, NumberColor, [], BiggestGroup).
+
 % calculateLargestGroup(Color, Cell, Queue, Board, AccNumber, MaxNumber, NumberColor) -> Searching groups of color Color, Cell being explored (format: Line-Column), Queue has the cells to process in the currnt group,
 % Board is the final board, AccNumber has the number of cells processed of the current group, MaxNumber has the maximum number of cells of a group with color Color until the moment, NumberColor will have the number of cells of the biggest group of color Color
 
@@ -289,3 +298,79 @@ get_next([[_, _, _]|Rest], Color, AccList, List) :-
 
 next_difficulty(white, DifficultyWhite, _, DifficultyWhite).
 next_difficulty(black, _, DifficultyBlack, DifficultyBlack).
+
+% ----------------------------------------------------------- SE DER BORRADA APAGAR - TENTATIVA BOT MAIS INTELIGENTE --------------------------------------------------------------
+
+% calculateLargestGroup(Color, Cell, Queue, Board, AccNumber, MaxNumber, NumberColor) -> Searching groups of color Color, Cell being explored (format: Line-Column), Queue has the cells to process in the currnt group,
+% Board is the final board, AccNumber has the number of cells processed of the current group, MaxNumber has the maximum number of cells of a group with color Color until the moment, NumberColor will have the number of cells of the biggest group of color Color
+
+% Final Case -> Cell being explored is the last in the Board ([Length, Length]) : Copy BiggestNumber to NumberColor
+calculateLargestPossibleGroup(_, Length-Length, [], Board, _, NumberColor, NumberColor, _, _) :-
+    length(Board, Length).
+
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with the desired Color : Process Cell and fill Queue with the next Cells of the group to process
+calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
+    get_value(L, C, Board, Color),
+    \+ processed(L, C),
+    assert(processed(L, C)),
+    get_next_cells(Color, L, C, Board, List),
+    List \= [],
+    calculateLargestPossibleGroup(Color, L-C, List, Board, 1, BiggestNumber, NumberColor, [L-C|AccGroup], BiggestGroup), !.
+
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with different color of Color : Process Cell and explore the next cell
+calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
+    \+ get_value(L, C, Board, Color),
+    \+ processed(L, C),
+    assert(processed(L, C)),
+    length(Board, Length),
+    Mod is mod(C, Length), NewC is Mod + 1,
+    DivInt is div(C, Length), NewL is L + DivInt,
+    calculateLargestPossibleGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup), !.
+
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a cell already processed : Ignore cell, and explore next cell
+calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
+    length(Board, Length),
+    Mod is mod(C, Length), NewC is Mod + 1,
+    DivInt is div(C, Length), NewL is L + DivInt,
+    calculateLargestPossibleGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup).
+
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is not processed : Process adjacent cell, increase AccNumber and add its adjacent cells to Queue
+calculateLargestPossibleGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
+    \+ processed(OL, OC),
+    assert(processed(OL, OC)),
+    get_next_cells(Color, OL, OC, Board, NewCells),
+    append(List, NewCells, NewList),                                                
+    NewAccNumber is AccNumber + 1,
+    calculateLargestPossibleGroup(Color, L-C, NewList, Board, NewAccNumber, BiggestNumber, NumberColor, [OL-OC|AccGroup], BiggestGroup), !.
+
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is already processed : Ignore adjacent cell
+calculateLargestPossibleGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
+    processed(OL, OC),
+    calculateLargestPossibleGroup(Color, L-C, List, Board, AccNumber, BiggestNumber, NumberColor, AccGroup, BiggestGroup), !.
+
+% Case where we finished processing a group (Empty Queue, AccNumber \= 0) : Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell
+calculateLargestPossibleGroup(Color, L-C, [], Board, AccNumber, BiggestNumber, NumberColor, AccGroup, _) :-
+    AccNumber > BiggestNumber,
+    possible_to_increase(AccGroup, Board),
+    length(Board, Length),
+    Mod is mod(C, Length), NewC is Mod + 1,
+    DivInt is div(C, Length), NewL is L + DivInt,
+    calculateLargestPossibleGroup(Color, NewL-NewC, [], Board, 0, AccNumber, NumberColor, [], AccGroup), !.
+
+possible_to_increase([], _) :- fail.
+possible_to_increase([Cell|_], Board) :-
+    possible_to_extend(Cell, Board), !.
+possible_to_increase([_|BiggestGroup], Board) :-
+    possible_to_increase(BiggestGroup, Board).
+
+possible_to_extend(Cell, Board) :-
+    adjacent_cell_empty(Cell, Board, Adjacent),
+    adjacent_cell_empty(Adjacent, Board, _).
+
+adjacent_cell_empty(L-C, Board, Adjacent) :-
+    NextL is L + 1, PreviousL is L - 1, NextC is C + 1, PreviousC is C - 1,
+    get_value(PreviousL, C, Board, UpValue),
+    get_value(NextL, C, Board, DownValue),
+    get_value(L, PreviousC, Board, LeftValue),
+    get_value(L, NextC, Board, RightValue),
+    ((UpValue == empty, Adjacent = PreviousL-C) ; (DownValue == empty, Adjacent = NextL-C) ; (LeftValue == empty, Adjacent = L-PreviousC) ; (RightValue == empty, Adjacent = L-NextC)).

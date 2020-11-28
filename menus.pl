@@ -118,20 +118,25 @@ display_dimensions_menu :-
     write('|                                                                       |'),nl,
     write('|_______________________________________________________________________|'),nl,nl,nl.
 % ----------------------------------------------------------------------------------------------------------
+codes_to_number([], _, Number, Number).
+codes_to_number([Code|Codes], Exponent, Acc, Number) :-
+    NewAcc is Acc + (10**Exponent) * (Code - 48),
+    NewExponent is Exponent - 1,
+    codes_to_number(Codes, NewExponent, NewAcc, Number).
 
 % -------------------------------------------------------------------------
 % input(N, FirstOpt, LastOpt, String, Type) -> Asks the user for an input N of type Type, which must be in the range [FirstOpt, LastOpt], or else a warning is shown, containing the explanation String
 input(N, FirstOpt, LastOpt, String, Type) :-
-    write('Option: '), read(O),
-    check_option(O, N, FirstOpt, LastOpt, String, Type).
+    write('Option: '), get_char(O), skip_line, atom_codes(O, Digits), length(Digits, NrDigits), Exponent is NrDigits - 1, codes_to_number(Digits, Exponent, 0, FloatNumber), Number is round(FloatNumber),
+    check_option(Number, N, FirstOpt, LastOpt, String, Type).
 
 % check_option(O, N, FirstOpt, LastOpt, String) -> Check if option chosen by the user (O) is valid, return the value of the option chosen (N) if so.
 check_option(O, N, FirstOpt, LastOpt, _, Type) :- O >= FirstOpt, O =< LastOpt, option(O, N, Type), !.
 check_option(_, N, FirstOpt, LastOpt, String, Type) :-
     write('Invalid Option. '),
     write(String),
-    read(NewO),
-    check_option(NewO, N, FirstOpt, LastOpt, String, Type).
+    get_char(O), skip_line, atom_codes(O, Digits), length(Digits, NrDigits), Exponent is NrDigits - 1, codes_to_number(Digits, Exponent, 0, FloatNumber), Number is round(FloatNumber),
+    check_option(Number, N, FirstOpt, LastOpt, String, Type).
 
 % option(O, N, Type) -> Returns the dimensions of the board (N) based on the option chosen by the user (O), considering its type (Type)
 option(1, 7, dimensions).
