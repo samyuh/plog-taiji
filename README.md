@@ -157,7 +157,7 @@ Para determinar se uma posição é válida é necessário verificar a mesma nã
 Para essa validação de jogadas foi utilizado o predicado `valid_move(L, C, O, CurrentBoard)`.
 ?? Explicar como get_value e orientation funcionam ??
 
-A obtenção de todas as jogadas válidas é feita com o predicado `valid_moves(GameState, _, ListOfMoves)`. Vai ser retornada em ListOfMoves todas as jogadas válidas, que são obtidas a partir da utilização do seguinte do predicado`findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves)**.
+A obtenção de todas as jogadas válidas é feita com o predicado `valid_moves(GameState, _, ListOfMoves)`. Vai ser retornada em ListOfMoves todas as jogadas válidas, que são obtidas a partir da utilização do seguinte do predicado`findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves)`.
 
 ### Execução de Jogadas -- TO DO
 
