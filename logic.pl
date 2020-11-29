@@ -26,7 +26,7 @@ makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     atom_concat(HalfString, ' part? ', String),
     input(O, 1, 4, String, orientation),
     write('Chosen cell ['), write(L), write(', '), write(C), write(', '), write(O), write(']'), nl,
-    valid_move(L, C, O, CurrentBoard),
+    valid_move(L-C-O, CurrentBoard),
     move(CurrentBoard, L-C-O-Color, NextBoard), !.
 
 makeMove(Color, CurrentBoard, NextColor, NextBoard, random) :-
@@ -46,27 +46,77 @@ makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType) :-
     makeMove(Color, CurrentBoard, NextColor, NextBoard, PlayerType).
 
 % ------------------------------------------------------------------------------------------------------------------------- %
+%                                                        Valid move                                                         %
+%   Prototype:                                                                                                              %
+%       valid_move(+Move, +CurrentBoard)                                                                                    %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Move -> The Move to check if it's valid, in the format L-C-O, being L and C the Line and Column of the cell to be   %
+%               filled with one part of the Taijitu and O the orientation of the Taijitu, to get the other part's cell      %
+%       CurrentBoard -> The state of the current board                                                                      %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Sucess if the chosen location for the Taijitu (Line L, Collumn C, Orientation O) is valid in the CurrentBoard       %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
-% valid_move(L, C, O, CurrentBoard) -> checks if the chosen location for the Taijitu (Line L, Collumn C, Orientation O) is valid in the CurrentBoard
-valid_move(L, C, O, CurrentBoard) :-
+valid_move(L-C-O, CurrentBoard) :-
     get_value(L, C, CurrentBoard, empty),
     orientation(O, L-C, BL-BC),
     get_value(BL, BC, CurrentBoard, empty).
 
-% get_value(Row, Column, CurrentBoard, Value) -> returns the Value of the cell with row Row and column Column in the CurrentBoard
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                        Get Cell Value                                                     %
+%   Prototype:                                                                                                              %
+%       get_value(+Row, +Column, +CurrentBoard, -Value)                                                                     %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Row -> The Row of the Cell which we want to know the value                                                          %
+%       Column -> The Column of the Cell which we want to know the value                                                    %
+%       CurrentBoard -> The state of the current board                                                                      %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Value -> The value of the Cell with row Row and column Column in the CurrentBoard. If the cell is not valid,        %
+%                return value off_limits                                                                                    %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 get_value(Row, Column, CurrentBoard, Value) :-
     nth1(Row, CurrentBoard, RowList),
     nth1(Column, RowList, Value), !.
 
 get_value(_, _, _, off_limits).
 
-% orientation(O, L, C, BL, BC) -> returns the line (BL) and collumn (BC) of the black part of the Taijitu, based on the line (L) and collumn (C) of the white part, and on the orientation (O) of the Taijitu
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                  Process Taijitu Orientation                                              %
+%   Prototype:                                                                                                              %
+%       orientation(+O, +FirstCell, -SecondCell)                                                                            %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       O -> The Orientation of the Taijitu (up, down, left, right)                                                         %
+%       FirstCell -> The Cell of the first part of the Taijitu, in the format L-C, where L is its Line and C its Column     %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       SecondCell -> The Cell of the second part of the Taijitu, in the format BL-BC, where L is its Line and C its Column %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 orientation(O, L-C, BL-BC) :- O == up, BL is L - 1, BC = C.
 orientation(O, L-C, BL-BC) :- O == down, BL is L + 1, BC = C.
 orientation(O, L-C, BL-BC) :- O == left, BL = L, BC is C - 1.
 orientation(O, L-C, BL-BC) :- O == right, BL = L, BC is C + 1.
 
-% move(GameState, L-C-O, NewGameState) -> places a Taijitu with the white part in cell with row L and collumn C, and orientation O, in the current GameState, resulting in NewGameState
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                      Place a Taijitu                                                      %
+%   Prototype:                                                                                                              %
+%       move(+GameState, +Move, -NewGameState)                                                                              %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       GameState -> The state of the current board, before the move Move is done                                           %
+%       Move -> The move to execute, in the format L-C-O-Color, being L and C the line and column of the first part of the  %
+%               Taijitu, O the orientation of the Taijitu, and Color the color of the first part of the Taijitu             %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       NewGameState -> The state of the next board, after executing the move Move                                          %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 move(GameState, L-C-O-Color, NewGameState) :-
     orientation(O, L-C, BL-BC),
     nth1(L, GameState, RowBeforeWhite),
@@ -77,30 +127,56 @@ move(GameState, L-C-O-Color, NewGameState) :-
     replace(RowBeforeBlack, BC, NextColor, RowPlacedBlack),
     replace(BoardPlacedWhite, BL, RowPlacedBlack, NewGameState).
 
-% replace(OriginalList, Index, Element, NewList) -> Replace the element at the index Index of the OriginalList for the element Element, resulting in NewList
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                     Replace Cell Value                                                    %
+%   Prototype:                                                                                                              %
+%       replace(+OriginalList, +Index, +Element, -NewList)                                                                  %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       OriginalList -> The List to have one of its values replaced                                                         %
+%       Index -> The index of the element to be replaced in the OriginalList                                                %
+%       Element -> The new value to replace the element at the index Index of the OriginalList                              %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       NewList -> The resulting list, after replacing the element at the index Index for the value Element                 %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 replace([_|T], 1, X, [X|T]):- !.
 replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
 replace(L, _, _, L).
 
-% ----------------------------------------------------------- Move Bot ----------------------------------------------------------------
-% lista_ate(N, L) -> devolve a lista L de todos os números inteiros entre 1 e N -> APAGAR E USAR BETWEEN? Nao funciona o between...
-lista_ate(1, [1]).
-lista_ate(N, L) :-
-    N > 1,
-    N1 is N-1,
-    lista_ate(N1, L2),
-    append(L2, [N], L).
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                 Return All Valid Moves                                                    %
+%   Prototype:                                                                                                              %
+%       valid_moves(+GameState, +Player, -ListOfMoves)                                                                      %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       GameState -> The state of the current board                                                                         %
+%       Player -> The color of the current player (not needed in our case, but it respects the Project Enunciate)           %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       ListOfMoves -> The list of all the valid moves in the current board                                                 %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
-% Prototype in the Project Enunciate -> valid_moves(+GameState, +Player, -ListOfMoves)
 valid_moves(GameState, _, ListOfMoves) :-
     length(GameState, Length),
-    lista_ate(Length, RangeList),
-    % numlist(Length, NumList),
-    % write(RangeList), nl,
-    % write(NumList), nl,
-    findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves).
+    numlist(Length, RangeList),
+    findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L-C-O, GameState)), ListOfMoves).
 
-% choose_move(+GameState, +Player, +Level, -Move)
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                     Choose a Move                                                         %
+%   Prototype:                                                                                                              %
+%       choose_move(+GameState, +Player, +Level, -Move)                                                                     %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       GameState -> The state of the current board                                                                         %
+%       Player -> The color of the current Bot to play                                                                      %
+%       Level -> The level of the current Bot to play (random, intelligent)                                                 %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Move -> The best move for the Bot to make, depending on its level, in the format L-C-O (Line-Column-Orientation)    %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 choose_move(GameState, Player, random, L-C-O) :-
     valid_moves(GameState, Player, PossibleMoves),
     length(PossibleMoves, NumberMoves),
@@ -119,6 +195,24 @@ choose_move(GameState, Player, intelligent, L-C-O) :-
     random(1, LimitRandom, R),
     nth1(R, BestMoves, _-L-C-O).
 
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                  Calculate Value of Move                                                  %
+%   Prototype:                                                                                                              %
+%       calculateValueMove(+GameState, +Color, +RangeList, +PossibleMoves, -ValueMove)                                      %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       GameState -> The state of the current board                                                                         %
+%       Color -> The color of the current Bot to play                                                                       %
+%       RangeList -> List with the possible values for the line and column of the Move                                      %
+%       PossibleMoves -> List with all the valid moves in the Current Board                                                 %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       ValueMove -> A possible Move, associated with its value, in the format SymmetricalValue-L-C-O, where L, C and O are %
+%                    the Line, Column and Orientation of the Taijitu, and SymmetricalValue is the symmetric of the value    %
+%                    of the move, which is the biggest group found, possible to extend. We need its symmetric for the setof %
+%                    used in choose_move() to order by actual decrescent order of the values (biggest come first)           %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-L-C-O) :-
     member(L, RangeList),
     member(C, RangeList),
@@ -127,6 +221,20 @@ calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-
     move(GameState, L-C-O-Color, NewGameState),
     best_possible_value(NewGameState, Color, Value, _),
     SymmetricalValue is -Value.
+
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                  Select the best moves                                                    %
+%   Prototype:                                                                                                              %
+%       select_best_moves(+ValueMoves, +AccMoves, -BestMoves, -BestValue)                                                   %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       ValueMoves -> Ordered List with the possible moves and its values, in the format V-L-C-O, being V their value, and  %
+%       AccMoves -> List which will contain the best moves at a certain call of the predicate. It begins empty ([])         %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       BestMoves -> List with all the best moves for the current Bot to play                                               %
+%       BestValue -> Value of the best moves chosen                                                                         %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
 select_best_moves([V-L-C-O|Moves], [], BestMoves, _) :-
     select_best_moves(Moves, [V-L-C-O], BestMoves, V), !.
@@ -140,42 +248,103 @@ select_best_moves([V-L-C-O|Moves], AccMoves, BestMoves, BestValue) :-
     append(AccMoves, [V-L-C-O], NewAccMoves),
     select_best_moves(Moves, NewAccMoves, BestMoves, BestValue).
 
-% -------------------------------------------------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                  Select the Next Player                                                   %
+%   Prototype:                                                                                                              %
+%       next_player(+Player, -NextPlayer)                                                                                   %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Player -> the color of the player of the current turn                                                               %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       NextPlayer -> the color of the player to play in the next turn                                                      %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
-
-% ------------------------------------------------------ Change Player ------------------------------------------------------
-
-% next_player(Player, NextPlayer) -> returns the NextPlayer to place a Taijitu, based on the current Player
 next_player(white, black).
 next_player(black, white).
 
-% return_player_type(Color, PlayerColor, player) -> returns the type of player to play in the current turn (player or bot), by comparing the current Color in the turn and the color chosen by the player
-return_player_type(PlayerColor, PlayerColor, player, _) :-!.
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                      Return Player Type (Used in mode Player VS Computer)                                 %
+%   Prototype:                                                                                                              %
+%       return_player_type(+ChosenColor, +PlayerColor, -PlayerType, +Difficulty)                                            %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       ChosenColor -> the color chosen by the player, before the start of the game                                         %
+%       PlayerColor -> the color of the player/bot to play in the current turn                                              %
+%       Difficulty -> the difficulty of the bot, chosen before the start of the game                                        %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       PlayerType -> The type of the player to play in the current turn (player, random, intelligent)                      %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
+return_player_type(PlayerColor, PlayerColor, player, _) :- !.
 return_player_type(_, _, Difficulty, Difficulty).
 
-% -------------------------------------------------------------------------------------------------------------------------
-
-% ------------------------------------------------------ End of game ------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                       Game Over                                                           %
+%   Prototype:                                                                                                              %
+%       game_over(+GameState, -WinnerData)                                                                                  %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       GameState -> The state of the current board.                                                                        %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       WinnerData -> If GameState is not a final board, fail. Otherwise, store in WinnerData, in the format Winner-Number, %
+%                     the Winner of the game and the number of cells of the biggest group he accomplished                   %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
 game_over(GameState, Player-Number) :-
     endOfGame(GameState),
     showFinalBoard(GameState),
     calculateWinner(GameState, Player, Number).                                                          
 
-% endOfGame(Board) -> sucess if there's no more possible moves in the Board, fail otherwise
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                                       End of Game                                                         %
+%   Prototype:                                                                                                              %
+%       endOfGame(+Board)                                                                                                   %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Board -> The state of the current board.                                                                            %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Success if the Board is a final board (no more possible moves), fail otherwise                                      %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 endOfGame(Board) :-
     (\+ search_move_rows(Board) ; \+ search_move_columns(Board)),
     !, fail.
 
 endOfGame(_).
 
-% search_move_rows(Board) -> checks all rows of the Board, to find any horizontal placements of a Taijitu. Sucess if it found any possible move
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                    Find any horizontal placement in a board for a Taijitu                                 %
+%   Prototype:                                                                                                              %
+%       search_move_rows(+Board)                                                                                            %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Board -> The state of the current board                                                                             %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Success if there is no possible horizontal placement of a Taijitu, fail otherwise                                   %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 search_move_rows([]).
 search_move_rows([Row|Board]) :-
     \+ row_move(Row),
     search_move_rows(Board).
 
-% row_move(Row) -> sucess if a possible move was found in the given Row
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                    Find any horizontal placement in a row for a Taijitu                                   %
+%   Prototype:                                                                                                              %
+%       row_move(+Row)                                                                                                      %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Row -> The row to check if there is any possible horizontal move for a Taijitu                                      %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Success if there is any possible horizontal placement for a Taijitu in the row, fail otherwise                      %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 row_move([_]) :- fail.
 row_move([Elem1, Elem2|_]) :-
     Elem1 == empty,
@@ -183,22 +352,54 @@ row_move([Elem1, Elem2|_]) :-
 row_move([_, Elem2|RestRow]) :-
     row_move([Elem2|RestRow]).
 
-% search_move_columns(Board) -> checks all columns of the Board, to find any vertical placements of a Taijitu. Sucess if it found any possible move
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                    Find any vertical placement in a board for a Taijitu                                   %
+%   Prototype:                                                                                                              %
+%       search_move_columns(+Board)                                                                                         %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Board -> The state of the current board                                                                             %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Success if there is no possible vertical placement of a Taijitu, fail otherwise                                     %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 search_move_columns(Board) :-
     clpfd:transpose(Board, TransposeBoard),
     search_move_rows(TransposeBoard).
 
-% -------------------------------------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                               Show Results of the game                                                    %
+%   Prototype:                                                                                                              %
+%       showResult(+Winner, +Number)                                                                                        %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Winner -> The winner of the game                                                                                    %
+%       Number -> The number of cells of the biggest group achieved by the Winner                                           %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Presentes the results of the game to the screen                                                                     %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
-% ------------------------------------------------------ Calculate Results and Show Winner ------------------------------------------------------
-
-% showResult(Board) -> Calculates the results of the final Board and show the winner of the game
 showResult(Winner, Number) :-
     nl, write('The winner of the game is the '),
     player(Winner, String),
     write(String),
     write(' with a maximum group of '),
     write(Number), write(' Taijitus.'), nl.
+
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                               Show Results of the game                                                    %
+%   Prototype:                                                                                                              %
+%       showResult(+Winner, +Number)                                                                                        %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Winner -> The winner of the game                                                                                    %
+%       Number -> The number of cells of the biggest group achieved by the Winner                                           %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Presentes the results of the game to the screen                                                                     %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
 % calculateWinner(Board, Player) -> Analyze the final Board and return the Player who has won the game
 calculateWinner(Board, Player, Number) :-

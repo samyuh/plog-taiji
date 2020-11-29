@@ -8,6 +8,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(random)).
 :- use_module(library(system)).
+:- use_module(library(between)).
 
 % play -> Starts the game, with a N x N board. Player1 (white color) starts playing.
 play :-
