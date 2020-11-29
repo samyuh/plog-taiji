@@ -1,97 +1,98 @@
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                              Get the Symbol corresponding to each cell                                                    %
+%                                       Get the Symbol corresponding to each cell                                           %
 %   Prototype:                                                                                                              %
 %       character(+Name, -Symbol)                                                                                           %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Name -> Name of the present Cell                                                                                    %
+%       Name -> Content of the cell to get its representation symbol                                                        %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%       Symbol -> Symbol to be printed on screen                                                                            %
+%       Symbol -> Symbol of the cell, to be presented on the screen                                                         %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 character(empty, ' ').
 character(black, 'X').    
 character(white, 'O').
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                Get a string with the name of the current Player                                           %
+%                                   Get a string with the name of the current Player                                        %
 %   Prototype:                                                                                                              %
 %       player(+Player, -String)                                                                                            %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Name -> Name of the current Player                                                                                  %
+%       Player -> The Player of the current turn (white, black)                                                             %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%       Symbol -> String with the name of the current Player                                                                %
+%       String -> String composed with the color of the player, to be presented to the screen                               %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 player(white, 'White Player').
 player(black, 'Black Player').
 
-
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                 Call the display_board and display_turn to be printed on screen                           %
+%                                           Display game at a given moment                                                  %
 %   Prototype:                                                                                                              %
 %       display_game(+Gamestate, +Player)                                                                                   %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Gamestate -> Current board matrix                                                                                   %
-%       Player -> Current Player                                                                                            %
-%   Outputs:                                                                                                                %
+%       Gamestate -> The state of the current board                                                                         %
+%       Player -> The player to play in the current turn                                                                    %
 %                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Presents the current board and the current turn to the screen                                                       %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 display_game(Gamestate, Player) :- display_board(Gamestate), display_turn(Player).
 
-
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                  display the current board (Gamestate), with NxN dimensions                               %
+%                                                 Display Game Board                                                        %
 %   Prototype:                                                                                                              %
 %       display_board(+Gamestate)                                                                                           %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Gamestate -> Current board matrix                                                                                   %
+%       Gamestate -> The state of the current board                                                                         %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%       Prints the current board to the screen                                                                              %
+%       Presents the current board to the screen                                                                            %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 display_board(Gamestate) :-
     length(Gamestate, N),
-    nl, write('      '), print_numbers(1, N), 
-    nl,
-    write('    \x250c\'), print_top(N), % ┌
-    nl, 
-    print_matrix(Gamestate, 1, N),
-    write('    \x2514\'), print_bot(N), % └
-    nl, 
-    !.
+    nl, write('      '), print_numbers(1, N), nl,
+    write('    \x250c\'), print_top(N), % Top Left Corner (┌)
+    nl, print_matrix(Gamestate, 1, N),
+    write('    \x2514\'), print_bot(N), % Bottom Left Corner (└)
+    nl, !.
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                             Display the Player to play in the current turns                                               %
+%                                                     Display Game Turn                                                     %
 %   Prototype:                                                                                                              %
 %       display_turn(+Player)                                                                                               %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player -> Current Player                                                                                            %
+%       Player -> The player to play in the current turn                                                                    %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%       Prints the current player to the screen                                                                             %
+%       Presents the current turn to the screen                                                                             %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 display_turn(Player) :-
     player(Player, Name),
     character(Player, Symbol),
     nl, write(Name), write(' turn. ('), write(Symbol), write(')'), nl.
 
-
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                Prints a line of numbers, enumerating the columns                                          %
+%                                   Prints a line of numbers, enumerating the columns                                       %
 %   Prototype:                                                                                                              %
-%        print_numbers(+Acc, +N)                                                                                              %
+%       print_numbers(+Acc, +N)                                                                                             %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Acc -> Actual column number to print, starting from 1                                                               %
-%       N -> Last column number                                                                                             %
+%       Acc -> Actual column number to print. It begins with the value 1                                                    %
+%       N -> Dimension of the board (N x N)                                                                                 %
 %   Outputs:                                                                                                                %
-%       Prints a line of numbers, enumerating the columns                                                                   %
+%       Presents a line of numbers to the screen, enumerating the columns                                                   %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_numbers(N, N) :- write(N), !.
 print_numbers(Acc, N) :-    % write becomes more clean when Acc has 2 digits (no deformatting)
     Acc >= 9,
@@ -105,19 +106,20 @@ print_numbers(Acc, N) :-
     write('   '),
     print_numbers(NewAcc, N).
 
-
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                %
+%                                               Display the Board Matrix                                                    %
 %   Prototype:                                                                                                              %
-%        print_matrix(Matrix, Acc, N)                                                                                       %
+%        print_matrix(+Matrix, +Acc, +N)                                                                                    %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Matrix -> Current board matrix                                                                                      %
-%       Acc -> Actual row line to print                                                                                     %
-%       N -> Row/Column limit                                                                                               %
+%       Matrix -> The state of the current board                                                                            %
+%       Acc -> Actual row line to print. It begins with value 1                                                             %
+%       N -> Dimension of the board (N x N)                                                                                 %
+%                                                                                                                           %
 %   Outputs:                                                                                                                %
-%       Prints matrix M to the screen                                                                                       %
+%       Presents the game matrix to the screen                                                                              %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_matrix([], _, _).
 print_matrix([L|M], Acc, N) :-  % write becomes more clean when Acc has 2 digits (no deformatting)
     Acc > 9,
@@ -134,156 +136,165 @@ print_matrix([L|M], Acc, N) :-
     print_matrix(M, NewAcc, N).
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints line from matrix to the screen                                        %
+%                                              Present a single Matrix Line                                                 %
 %   Prototype:                                                                                                              %
-%        print_line(+Line)                                                                                                  %
+%       print_line(+Line)                                                                                                   %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Line -> Line to print to screen from Matrix                                                                         %
+%       Line -> Line of matrix to present to screen                                                                         %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                                                                           %
+%       Presents a single Matrix Line to the screen                                                                         %
 % ------------------------------------------------------------------------------------------------------------------------- %
-print_line([]) :- write('\x2502\').  % │
+
+print_line([]) :- write('\x2502\').  % Vertical Division (│)
 print_line([Cell|L]) :-
     character(Cell, C),
-    write('\x2502\ '), write(C), write(' '), % │ C 
+    write('\x2502\ '), write(C), write(' '), % Vertical Division followed by Cell Value (│ C) 
     print_line(L).
 
-
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                %
+%                                              Present left limits of the board                                             %
 %   Prototype:                                                                                                              %
-%        print_limits(N)                                                                                                    %
+%        print_limits(+Acc, +N)                                                                                             %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                                           %
+%       Acc -> Number of line being presented                                                                               %
+%       N -> Dimension of the board (N x N)                                                                                 %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                                                                           %
+%       Presents the left limits of the board                                                                               %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_limits(A, A).
 print_limits(_, 0) :- nl.
 print_limits(_, N) :-
-    write('    \x251c\'), % ├ 
+    write('    \x251c\'), % Left Limit (├)
     print_middle(N).
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                                            %
+%                                     Presents board's middle horizontal limits                                             %
 %   Prototype:                                                                                                              %
-%        print_middle(N)                                                                                             %
+%        print_middle(+N)                                                                                                   %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                  %
+%       N -> Column which middle limit is being presented                                                                   %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                     %
+%       Presentes the board's middle horizontal limits                                                                      %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_middle(0) :- nl.
 print_middle(N) :-
     N > 0,
     N1 is N - 1,
-    write('\x2500\\x2500\\x2500\'), % ───
+    write('\x2500\\x2500\\x2500\'), % Middle horizontal limit  (───)
     print_middle_intersect(N),
     print_middle(N1).
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                                            %
+%                                       Presents board's top horizontal limits                                              %
 %   Prototype:                                                                                                              %
-%        print_top(N)                                                                                             %
+%        print_top(+N)                                                                                                      %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                  %
+%       N -> Column which top limit is being presented                                                                      %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                     %
+%       Presentes the board's top horizontal limits                                                                         %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_top(0).
 print_top(N) :-
     N > 0,
     N1 is N - 1,
-    write('\x2500\\x2500\\x2500\'), % ───
+    write('\x2500\\x2500\\x2500\'), % Top horizontal limit (───)
     print_top_intersect(N),
     print_top(N1).
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                                            %
+%                                           Presents board's bottom horizontal limits                                       %
 %   Prototype:                                                                                                              %
-%        print_bot(N)                                                                                             %
+%        print_bot(+N)                                                                                                      %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                  %
+%       N -> Column which bottom limit is being presented                                                                   %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                     %
+%       Presentes the board's bottom horizontal limits                                                                      %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_bot(0).
 print_bot(N) :-
     N > 0,
     N1 is N - 1,
-    write('\x2500\\x2500\\x2500\'), % ───
+write('\x2500\\x2500\\x2500\'), % Bottom horizontal limit (───)
     print_bot_intersect(N),
     print_bot(N1).
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                                            %
+%                                          Presents board's middle intersect limits                                         %
 %   Prototype:                                                                                                              %
-%        print_middle_intersect(N)                                                                                             %
+%        print_middle_intersect(+N)                                                                                         %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                  %
+%       N -> Column which middle intersect limit is being presented                                                         %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                     %
+%       Presentes the board's middle intersect limits                                                                       %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_middle_intersect(1) :-
-    write('\x2524\'). % ┤
+    write('\x2524\'). % Middle Left Intersect (┤)
 print_middle_intersect(_) :-
-    write('\x253c\'). % ┼
+    write('\x253c\'). % Middle Intersect (┼)
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                                            %
+%                                          Presents board's top intersect limits                                            %
 %   Prototype:                                                                                                              %
-%        print_top_intersect(N)                                                                                             %
+%        print_top_intersect(+N)                                                                                            %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                  %
+%       N -> Column which top intersect limit is being presented                                                            %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                     %
+%       Presentes the board's top intersect limits                                                                          %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_top_intersect(1) :-
-    write('\x2510\'). % ┐
+    write('\x2510\'). % Top Right Corner (┐)
 print_top_intersect(_) :-
-    write('\x252c\'). % ┬
+    write('\x252c\'). % Top Intersect (┬)
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              prints matrix M to the screen                                                                            %
+%                                          Presents board's bottom intersect limits                                         %
 %   Prototype:                                                                                                              %
-%        print_bot_intersect(N)                                                                                             %
+%        print_bot_intersect(+N)                                                                                            %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                  %
+%       N -> Column which bottom intersect limit is being presented                                                         %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                     %
+%       Presentes the board's bottom intersect limits                                                                       %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 print_bot_intersect(1) :-
-    write('\x2518\'). % ┘
+    write('\x2518\'). % Bottom Right Corner (┘)
 print_bot_intersect(_) :-
-    write('\x2534\'). % ┴
+    write('\x2534\'). % Bottom Intersect (┴)
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                              displays the FinalBoard, with no more possible moves left                                                                            %
+%                                                   Show the Final Board                                                    %
 %   Prototype:                                                                                                              %
-%        pshowFinalBoard(NextBoard)                                                                                             %
+%        showFinalBoard(+FinalBoard)                                                                                        %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Player ->                                                                                  %
+%       FinalBoard -> The final board of the game                                                                           %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%                                                                     %
+%       Presents the Final Board to the screen                                                                              %
 % ------------------------------------------------------------------------------------------------------------------------- %
+
 showFinalBoard(FinalBoard) :-
     length(FinalBoard, 7),
     nl, write('\t     Final Board'), nl,
