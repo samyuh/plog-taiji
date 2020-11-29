@@ -11,18 +11,18 @@
 ---
 ## Índice
 
-- [Instalação e Execução](#Instalacao-e-Execucao)
-- [Descrição do jogo - Taiji](#Descricao-do-jogo---Taiji)
-- [Lógica do Jogo](#Logica-do-Jogo)
-  - [Representação do Estado do Jogo](#Representacao-do-Estado-do-Jogo)
-  - [Visualização do Estado do Jogo](#Visualizacao-do-Estado-do-Jogo)
-  - [Lista de Jogadas Válidas](#Lista-de-Jogadas-Validas)
-  - [Execução de Jogadas](#Execucao-de-Jogadas)
-  - [Final do Jogo](#Final-do-Jogo)
-  - [Avaliação do Tabuleiro](#Avaliacao-do-Tabuleiro)
-  - [Jogada do Computador](#Jogada-do-Computador)
-- [Conclusões](#Conclusoes)
-- [Bibliografia](#Bibliografia)
+- [Instalação e Execução](#instalação-e-execução)
+- [Descrição do jogo - Taiji](#descrição-do-jogo---taiji)
+- [Lógica do Jogo](#lógica-do-jogo)
+  - [Representação do Estado do Jogo](#representação-interna-do-jogo)
+  - [Visualização do Estado do Jogo](#visualização-do-estado-do-jogo)
+  - [Lista de Jogadas Válidas](#lista-de-jogadas-válidas)
+  - [Execução de Jogadas](#execução-de-jogadas)
+  - [Final do Jogo](#final-do-jogo)
+  - [Avaliação do Tabuleiro](#avaliação-do-tabuleiro)
+  - [Jogada do Computador](#jogada-do-computador)
+- [Conclusões](#conclusões)
+- [Bibliografia](#bibliografia)
 
 ---
 ## Instalação e Execução
@@ -122,9 +122,11 @@ finalBoard([
 
 As funções que estão responsáveis pela visualização encontram-se no ficheiro [display.pl](display.pl).
 
-O predicado play chama o predicado *display_game(Gamestate, Player)*, que por sua vez chama *display_board(Gamestate)* seguido de *display_turn(Player)*. Desta forma, é apresentado o tabuleiro no estado recebido, e é indicado o jogador que deve jogar no turno. Posteriormente, serão adicionados aqui novos predicados, de maneira a receber e tratar os inputs dos jogadores.
+O predicado *play* começa inicialmente 
 
-O predicado **display_board** efetua a visualização do tabuleiro, tanto das suas casas como da grelha númerica que permite aos utilizadores identificarem cada casa. A função *print_numbers* é utilizada para a enumeração de 1 até N das linhas de jogo, *print_limits* é utilizada para a criação dos limites superior e inferior (usando o caracter '_') e *print_matrix* para a visualização da matriz de jogo.
+Posteriormente o predicado **display_game(Gamestate, Player)** é evocado, e este por sua vez chama **display_board(Gamestate)** seguido de **display_turn(Player)**. Desta forma, é apresentado o tabuleiro no estado recebido, e é indicado o jogador que deve jogar no turno. Posteriormente, serão adicionados aqui novos predicados, de maneira a receber e tratar os inputs dos jogadores.
+
+O predicado **display_board** efetua a visualização do tabuleiro, tanto das suas casas como da grelha númerica que permite aos utilizadores identificarem cada casa. A função **print_numbers** é utilizada para a enumeração de 1 até N das linhas de jogo, **print_limits** é utilizada para a criação dos limites superior e inferior (usando o caracter '_') e **print_matrix** para a visualização da matriz de jogo.
 ```prolog
 display_board(Gamestate, N) :-
     nl, write('     '), print_numbers(1, N), nl,
@@ -134,38 +136,31 @@ display_board(Gamestate, N) :-
 ```
 
 #### Exemplos
-Apresentam-se agora exemplos da visualização de três estados de jogo diferentes, num tabuleiro 9x9:
+Apresentam-se agora exemplos da visualização dos menus e de três estados de jogo diferentes num tabuleiro 9x9:
 
-![Initial Board](./img/init-board.png)
+| Menu Inicial | Escolha de tabuleiro | Dificuldade do Bot |
+| ------------- | ------------------ | ----------- |
+| ![Menu Inicial](./img/menu-1.png) | ![Escolha de tabuleiro](./img/menu-2.png) | ![Dificuldade do Bot](./img/menu-3.png) |
 
-![Intermediate Board](./img/intermediate-board.png)
+Existem outros menus, dependendo da opção que o jogador escolheu inicialmente.
 
-![Final Board](./img/final-board.png)
+| Initial Board | Intermediate Board | Final Board |
+| ------------- | ------------------ | ----------- |
+| ![Initial Board](./img/init-board.png) | ![Intermediate Board](./img/intermediate-board.png) | ![Final Board](./img/final-board.png) |
+
 
 ### Lista de Jogadas Válidas
 
-Uma posição é válida se a mesma não se encontrar ocupada por nenhuma outra peça no tabuleiro. Como no nosso jogo *Taiji* uma peça ocupa duas casas é preciso garantir que ambas as casas se encontram livres. Para essa validação de jogadas foi utilizada a seguinte função:
+Para determinar se uma posição é válida é necessário verificar a mesma não se encontrar ocupada por nenhuma outra peça no tabuleiro. Como no nosso jogo *Taiji* uma peça ocupa duas casas é preciso garantir que ambas as casas se encontram livres.
 
-```prolog
-valid_move(L, C, O, CurrentBoard).
-```
+Para essa validação de jogadas foi utilizado o predicado **valid_move(L, C, O, CurrentBoard)**.
+?? Explicar como get_value e orientation funcionam ??
 
-A obtenção de todas as jogadas válidas é feita com o predicado *valid_moves*. Vai ser retornada em ListOfMoves todas as jogadas válidas, que são obtidas a partir de da utilização do seguinte findall:
-
-```prolog
-valid_moves(GameState, _, ListOfMoves).
-```
-
-```prolog
-findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves).
-```
-
-Por sua vez, a função valid_move verifica se a posição que se quer colocar a peça está vazia.
-
+A obtenção de todas as jogadas válidas é feita com o predicado **valid_moves(GameState, _, ListOfMoves)**. Vai ser retornada em ListOfMoves todas as jogadas válidas, que são obtidas a partir da utilização do seguinte do predicado **findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves)**.
 
 ### Execução de Jogadas
 
-Para a execução do jogo, utilizamos um ciclo que está responsável por executar as jgoadas de cada jogador. 
+Para a execução do jogo, utilizamos um ciclo que está responsável por executar as jogadas de cada jogador. 
 
 ```prolog
 nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
@@ -179,14 +174,16 @@ nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
     !.
 ```
 
+O predicado **makeMove** vai inicialmente pedir o input do jogador *Player* e *CurrentBoard* para este escolher a posição onde quer colocar a peça. Após o jogador escolher a posição da peça, a posição escolhida vai ser verificada e se for válida o predicado **move(CurrentBoard, L-C-O-Color, NextBoard)** vai ser invocado. Este tem como função alterar o *CurrentBoard* e retornar em *NextBoard* o novo tabuleiro de jogo, já com o *Taijitu* na posição escolhida pelo jogador.
+
 ### Final do Jogo
-O vencedor do jogo é calculado com o auxilio da função *calculateWinner* que vai obter o maior grupo de peças pretas e o maior grupo de peças brancas e obter o maior dos dois
+Quando não existe mais nenhuma jogada possível, o predicado **endOfGame** vai ter sucesso e vai ser obtido o vencedor do jogo. 
+
+O vencedor do jogo é calculado com o auxilio da função **calculateWinner** que vai obter o maior grupo de peças brancas e o maior número de peças pretas. Posteriormente vai ser calculado qual dos dois grupos é o maior. O vencedor é aquele que tiver o maior grupo.
 
 
 ### Avaliação do Tabuleiro
 O nosso predicado value(Board, Color, NumberColor) vai avaliar o tabuleiro e retornar em NumberColor o valor do maior grupo da cor Color, sendo auxiliada do predicado calculateLargestGroup que vai encontrar o maior grupo da mesma cor no tabuleiro.
-
-Quando não existe mais nenhuma jogada possível, o predicado *endOfGame* sucede. 
 
 
 ### Jogada do Computador
@@ -211,8 +208,7 @@ calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-
 
 O projeto teve como principal objetivo aplicar aquilo que aprendemos quer durante as aulas teóricas como práticas e permitiu a implementação de um jogo de tabuleiro para dois jogadores na linguagem PROLOG. Ao  longo  do  desenvolvimento  deste  projeto,  encontramos  algumas dificuldades que foram superadas quer com a ajuda do professor quer com recurso a informação existente online.
 
-A elaboração deste trabalho permitiu-nos ainda aperfeiçoar o nosso conhecimento e destreza em 
-programação lógica que até este semestre era inexistente.
+A elaboração deste trabalho permitiu-nos ainda aperfeiçoar o nosso conhecimento e destreza em  programação lógica que até este semestre era inexistente.
 Também aprendemos a ter um melhor raciocinio recursivo, uma vez que esta é uma das bases da programação lógica.
 
 O trabalho  foi  concluído  com  bastante sucesso,  e  o  seu  desenvolvimento contribuiu para melhorarmos e aprofundarmos o conhecimento desta linguagem de programação.
