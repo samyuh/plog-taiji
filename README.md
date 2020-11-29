@@ -9,6 +9,31 @@
     - Paulo Jorge Salgado Marinho Ribeiro (up201806505)
 
 ---
+## Índice
+
+- [Instalação e Execução](#Instalacao-e-Execucao)
+- [Descrição do jogo - Taiji](#Descricao-do-jogo---Taiji)
+- [Lógica do Jogo](#Logica-do-Jogo)
+  - [Representação do Estado do Jogo](#Representacao-do-Estado-do-Jogo)
+  - [Visualização do Estado do Jogo](#Visualizacao-do-Estado-do-Jogo)
+  - [Lista de Jogadas Válidas](#Lista-de-Jogadas-Validas)
+  - [Execução de Jogadas](#Execucao-de-Jogadas)
+  - [Final do Jogo](#Final-do-Jogo)
+  - [Avaliação do Tabuleiro](#Avaliacao-do-Tabuleiro)
+  - [Jogada do Computador](#Jogada-do-Computador)
+- [Conclusões](#Conclusoes)
+- [Bibliografia](#Bibliografia)
+
+---
+## Instalação e Execução
+### Windows
+- Abrir o SICStus Prolog
+- No menu Settings, escolher Font e selecionar tipo de letra Consolas.
+- Abrir o ficheiro main.pl
+- Executar o comando play. e jogar o jogo.
+### Linux
+
+---
 ## Descrição do jogo - Taiji
 
 Taiji é um jogo de tabuleiro, cujo nome significa "Grande Dualidade" e representa a luta do Bem vs Mal, Luz vs Escuridão, YIN vs YANG. Este pode ter três dimensões diferentes, sendo elas 7x7, 9x9 ou 11x11.
@@ -27,7 +52,8 @@ O jogo termina quando não há espaço livre para colocar *Taijitus*. O jogador 
 > Regras Oficiais do jogo: https://nestorgames.com/rulebooks/TAIJI_EN4.pdf
 
 --- 
-## Representação interna do jogo
+## Lógica do Jogo
+### Representação interna do jogo
 
 O tabuleiro é representado como uma matriz de N colunas por N linhas, pelo que vamos representá-lo como uma lista de listas, sendo cada sublista uma linha do tabuleiro. A matriz inicial é obtida de forma dinâmica, da seguinte forma:
 
@@ -92,8 +118,7 @@ finalBoard([
 ]).
 ```
 
----
-## Visualização do estado do jogo
+### Visualização do estado do jogo
 
 As funções que estão responsáveis pela visualização encontram-se no ficheiro [display.pl](display.pl).
 
@@ -108,7 +133,7 @@ display_board(Gamestate, N) :-
     write('   _'), print_limits(N * 4),  nl, nl.
 ```
 
-### Exemplos
+#### Exemplos
 Apresentam-se agora exemplos da visualização de três estados de jogo diferentes, num tabuleiro 9x9:
 
 ![Initial Board](./img/init-board.png)
@@ -116,3 +141,83 @@ Apresentam-se agora exemplos da visualização de três estados de jogo diferent
 ![Intermediate Board](./img/intermediate-board.png)
 
 ![Final Board](./img/final-board.png)
+
+### Lista de Jogadas Válidas
+
+Uma posição é válida se a mesma não se encontrar ocupada por nenhuma outra peça no tabuleiro. Como no nosso jogo *Taiji* uma peça ocupa duas casas é preciso garantir que ambas as casas se encontram livres. Para essa validação de jogadas foi utilizada a seguinte função:
+
+```prolog
+valid_move(L, C, O, CurrentBoard).
+```
+
+A obtenção de todas as jogadas válidas é feita com o predicado *valid_moves*. Vai ser retornada em ListOfMoves todas as jogadas válidas, que são obtidas a partir de da utilização do seguinte findall:
+
+```prolog
+valid_moves(GameState, _, ListOfMoves).
+```
+
+```prolog
+findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves).
+```
+
+Por sua vez, a função valid_move verifica se a posição que se quer colocar a peça está vazia.
+
+
+### Execução de Jogadas
+
+Para a execução do jogo, utilizamos um ciclo que está responsável por executar as jgoadas de cada jogador. 
+
+```prolog
+nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
+    repeat,
+        retract(state(Player, CurrentBoard)),
+        display_game(CurrentBoard, Player),
+        makeMove(Player, CurrentBoard, NextPlayer, NextBoard, player),
+        assert(state(NextPlayer, NextBoard)),
+        game_over(NextBoard, Winner-Number),
+    showResult(Winner, Number),
+    !.
+```
+
+### Final do Jogo
+O vencedor do jogo é calculado com o auxilio da função *calculateWinner* que vai obter o maior grupo de peças pretas e o maior grupo de peças brancas e obter o maior dos dois
+
+
+### Avaliação do Tabuleiro
+O nosso predicado value(Board, Color, NumberColor) vai avaliar o tabuleiro e retornar em NumberColor o valor do maior grupo da cor Color, sendo auxiliada do predicado calculateLargestGroup que vai encontrar o maior grupo da mesma cor no tabuleiro.
+
+Quando não existe mais nenhuma jogada possível, o predicado *endOfGame* sucede. 
+
+
+### Jogada do Computador
+
+Para a implementação da jogada do computador existem dois modos distintos.
+
+O primeiro destes modos é apenas uma jogada aleatória obtida através do predicado *random*, enquanto que outro modo é uma jogada greedy que vai tentar sempre que possível aumentar a pontuação atual do computador.
+
+
+```prolog
+choose_move(GameState, Player, random, L-C-O).
+
+
+choose_move(GameState, Player, intelligent, L-C-O).
+calculateValueMove(GameState, Color, RangeList, PossibleMoves, SymmetricalValue-L-C-O).
+```
+
+
+
+---
+## Conclusões 
+
+O projeto teve como principal objetivo aplicar aquilo que aprendemos quer durante as aulas teóricas como práticas e permitiu a implementação de um jogo de tabuleiro para dois jogadores na linguagem PROLOG. Ao  longo  do  desenvolvimento  deste  projeto,  encontramos  algumas dificuldades que foram superadas quer com a ajuda do professor quer com recurso a informação existente online.
+
+A elaboração deste trabalho permitiu-nos ainda aperfeiçoar o nosso conhecimento e destreza em 
+programação lógica que até este semestre era inexistente.
+Também aprendemos a ter um melhor raciocinio recursivo, uma vez que esta é uma das bases da programação lógica.
+
+O trabalho  foi  concluído  com  bastante sucesso,  e  o  seu  desenvolvimento contribuiu para melhorarmos e aprofundarmos o conhecimento desta linguagem de programação.
+
+---
+## Bibliografia
+
+- [https://nestorgames.com/rulebooks/TAIJI_EN4.pdf](https://nestorgames.com/rulebooks/TAIJI_EN4.pdf)

@@ -124,10 +124,18 @@ codes_to_number([Code|Codes], Exponent, Acc, Number) :-
     NewExponent is Exponent - 1,
     codes_to_number(Codes, NewExponent, NewAcc, Number).
 
+read_input(Number) :-
+    read_line(Codes),
+    length(Codes, NrCodes),
+    Exponent is NrCodes - 1,
+    codes_to_number(Codes, Exponent, 0, FloatNumber),
+    Number is round(FloatNumber).
+
 % -------------------------------------------------------------------------
 % input(N, FirstOpt, LastOpt, String, Type) -> Asks the user for an input N of type Type, which must be in the range [FirstOpt, LastOpt], or else a warning is shown, containing the explanation String
 input(N, FirstOpt, LastOpt, String, Type) :-
-    write('Option: '), get_char(O), skip_line, atom_codes(O, Digits), length(Digits, NrDigits), Exponent is NrDigits - 1, codes_to_number(Digits, Exponent, 0, FloatNumber), Number is round(FloatNumber),
+    write('Option: '),
+    read_input(Number),
     check_option(Number, N, FirstOpt, LastOpt, String, Type).
 
 % check_option(O, N, FirstOpt, LastOpt, String) -> Check if option chosen by the user (O) is valid, return the value of the option chosen (N) if so.
@@ -135,7 +143,7 @@ check_option(O, N, FirstOpt, LastOpt, _, Type) :- O >= FirstOpt, O =< LastOpt, o
 check_option(_, N, FirstOpt, LastOpt, String, Type) :-
     write('Invalid Option. '),
     write(String),
-    get_char(O), skip_line, atom_codes(O, Digits), length(Digits, NrDigits), Exponent is NrDigits - 1, codes_to_number(Digits, Exponent, 0, FloatNumber), Number is round(FloatNumber),
+    read_input(Number),
     check_option(Number, N, FirstOpt, LastOpt, String, Type).
 
 % option(O, N, Type) -> Returns the dimensions of the board (N) based on the option chosen by the user (O), considering its type (Type)
@@ -144,8 +152,8 @@ option(2, 9, dimensions).
 option(3, 11, dimensions).
 option(0, exit, dimensions).
 
-option(Option, Option, players).
 option(0, exit, players).
+option(Option, Option, players).
 
 option(Option, Option, move).
 option(1, up, orientation).

@@ -16,7 +16,7 @@
 makeMove(Color, CurrentBoard, NextColor, NextBoard, player) :-
     length(CurrentBoard, Length),
     next_player(Color, NextColor),
-    nl, write('Choose a cell for the '), write(Color), write(' part of the Taijitu :'), nl, nl,
+    nl, write('Choose a cell for the '), write(Color), write(' part of the Taijitu:'), nl, nl,
     write('Row? '),
     input(L, 1, Length, 'Row? ', move),
     write('Column? '),
@@ -95,6 +95,9 @@ lista_ate(N, L) :-
 valid_moves(GameState, _, ListOfMoves) :-
     length(GameState, Length),
     lista_ate(Length, RangeList),
+    % numlist(Length, NumList),
+    % write(RangeList), nl,
+    % write(NumList), nl,
     findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves).
 
 % choose_move(+GameState, +Player, +Level, -Move)
