@@ -30,9 +30,12 @@
 - Abrir o SICStus Prolog
 - No menu Settings, escolher Font e selecionar tipo de letra Consolas.
 - No menu File, escolher Consult e selecionar o ficheiro [main.pl](./main.pl)
-- Executar o comando play. e jogar o jogo.
+- Executar o comando "play." e jogar o jogo.
 
 ### Linux
+- Executar o ficheiro sicstus (./sicstus), na pasta bin da instalação.
+- Usar o predicado consult(Path), em que Path é o caminho completo para o ficheiro [main.pl](./main.pl).
+- Executar o comando "play." e jogar o jogo.
 
 ---
 ## Descrição do jogo - Taiji
@@ -56,7 +59,7 @@ O jogo termina quando não há espaço livre para colocar *Taijitus*. O jogador 
 ## Lógica do Jogo
 ### Representação interna do jogo
 
-O tabuleiro é representado como uma matriz de N colunas por N linhas, pelo que vamos representá-lo como uma lista de listas, sendo cada sublista uma linha do tabuleiro. A matriz inicial é obtida de forma dinâmica, da seguinte forma:
+O tabuleiro é representado como uma matriz de N linhas por N colunas, pelo que vamos representá-lo como uma lista de listas, sendo cada sublista uma linha do tabuleiro. A matriz inicial é obtida de forma dinâmica, da seguinte forma:
 
 ```prolog
 % initial(N, M) -> creates the initial matrix M for the board, with dimensions N x N
@@ -76,13 +79,13 @@ create_line(N, MI, M) :-
     create_line(N1, [empty|MI], M).
 ```
 
-Cada peça, denominada de *Taijitu* possui uma parte branca e preta, ocupando por isso duas casas do tabuleiro, uma para cada parte. Futuramente, cada peça vai ter o número da linha e coluna da parte branca da peça e a orientação (cima, direita, baixo, esquerda) de modo a conhecer a localização da parte preta. Identificamos as casas vazias com o caracter ' ' (espaço), as casas brancas com o caracter 'W' e as casas pretas com o caracter 'B'.
+Cada peça, denominada de *Taijitu* possui uma parte branca e preta, ocupando por isso duas casas do tabuleiro, uma para cada parte. Cada peça vai ter o número da linha e coluna da parte principal da peça (parte branca no caso de o jogador que a colocou ser o jogador branco e parte preta no outro caso) e a orientação (cima, direita, baixo, esquerda) de modo a conhecer a localização da segunda parte da peça (com a outra cor). Identificamos as casas vazias com o caracter ' ' (espaço), as casas brancas com o caracter 'O' e as casas pretas com o caracter 'X'.
 
 ```prolog
 % character(Name, Symbol) -> returns the Symbol for the cell with name Name
 character(empty, ' ').
-character(black, 'B').    
-character(white, 'W').
+character(black, 'X').    
+character(white, 'O').
 ```
 
 #### Diferentes estados de jogo
@@ -123,17 +126,19 @@ finalBoard([
  
 As funções que estão responsáveis pela visualização encontram-se no ficheiro [display.pl](display.pl).
 
-O predicado `play` começa inicialmente 
+O predicado `play` dá início à aplicação, que começa por apresentar uns menus, nos quais o jogador vai escolher o modo de jogo (Player VS Player, Player VS Computer, Computer VS Computer), e as dimensões do tabuleiro (7x7, 9x9, 11x11).
 
-Posteriormente o predicado `display_game(Gamestate, Player)` é evocado, e este por sua vez chama `display_board(Gamestate)` seguido de `display_turn(Player)`. Desta forma, é apresentado o tabuleiro no estado recebido, e é indicado o jogador que deve jogar no turno. Posteriormente, serão adicionados aqui novos predicados, de maneira a receber e tratar os inputs dos jogadores.
+A cada jogada, o predicado `display_game(Gamestate, Player)` é evocado, e este por sua vez chama `display_board(Gamestate)` seguido de `display_turn(Player)`. Desta forma, é apresentado o tabuleiro no estado recebido, e é indicado o jogador que deve jogar no turno.
 
 O predicado `display_board` efetua a visualização do tabuleiro, tanto das suas casas como da grelha númerica que permite aos utilizadores identificarem cada casa. A função `print_numbers` é utilizada para a enumeração de 1 até N das linhas de jogo, `print_limits` é utilizada para a criação dos limites superior e inferior (usando o caracter '_') e `print_matrix` para a visualização da matriz de jogo.
 ```prolog
-display_board(Gamestate, N) :-
-    nl, write('     '), print_numbers(1, N), nl,
-    write('   _'), print_limits(N * 4), nl, nl,
-    print_matrix(Gamestate, 1, N),
-    write('   _'), print_limits(N * 4),  nl, nl.
+display_board(Gamestate) :-
+    length(Gamestate, N),
+    nl, write('      '), print_numbers(1, N), nl,
+    write('    \x250c\'), print_top(N), % Top Left Corner (┌)
+    nl, print_matrix(Gamestate, 1, N),
+    write('    \x2514\'), print_bot(N), % Bottom Left Corner (└)
+    nl, !.
 ```
 
 #### Exemplos
@@ -150,16 +155,22 @@ Existem outros menus, dependendo da opção que o jogador escolheu inicialmente.
 | ![Initial Board](./img/init-board.png) | ![Intermediate Board](./img/intermediate-board.png) | ![Final Board](./img/final-board.png) |
 
 
-### Lista de Jogadas Válidas -- TO DO
+### Lista de Jogadas Válidas
 
-Para determinar se uma posição é válida é necessário verificar a mesma não se encontrar ocupada por nenhuma outra peça no tabuleiro. Como no nosso jogo *Taiji* uma peça ocupa duas casas é preciso garantir que ambas as casas se encontram livres.
+Para determinar se uma posição é válida é necessário verificar se a mesma não se encontrar ocupada por nenhuma outra peça no tabuleiro. Como no nosso jogo *Taiji* uma peça ocupa duas casas, é preciso garantir que ambas as casas se encontram livres.
 
-Para essa validação de jogadas foi utilizado o predicado `valid_move(L, C, O, CurrentBoard)`.
-?? Explicar como get_value e orientation funcionam ??
+Para essa validação de jogadas foi utilizado o predicado `valid_move(L-C-O, CurrentBoard)`, em que verificamos se a casa na linha L e coluna C está vazia, obtemos o valor da linha e coluna da outra parte da peça com base na sua orientação, e verificamos se essa casa também está livre.
 
-A obtenção de todas as jogadas válidas é feita com o predicado `valid_moves(GameState, _, ListOfMoves)`. Vai ser retornada em ListOfMoves todas as jogadas válidas, que são obtidas a partir da utilização do seguinte do predicado`findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L, C, O, GameState)), ListOfMoves)`.
+A obtenção de todas as jogadas válidas é feita com o predicado `valid_moves(GameState, Player, ListOfMoves)`. Vai ser retornado em ListOfMoves todas as jogadas válidas no tabuleiro atual (GameState), obtidas da seguinte forma:
 
-### Execução de Jogadas -- TO DO
+```prolog
+valid_moves(GameState, _, ListOfMoves) :-
+    length(GameState, Length),
+    numlist(Length, RangeList),
+    findall(L-C-O, (member(O, [up, down, left, right]), member(L, RangeList), member(C, RangeList), valid_move(L-C-O, GameState)), ListOfMoves).
+```
+
+### Execução de Jogadas
 
 Para a execução do jogo, utilizamos um ciclo que está responsável por executar as jogadas de cada jogador. 
 
@@ -175,42 +186,63 @@ nl, initial(N, InitialBoard), assert(state(white, InitialBoard)),
     !.
 ```
 
-O predicado `makeMove` vai inicialmente pedir o input do jogador *Player* e *CurrentBoard* para este escolher a posição onde quer colocar a peça. Após o jogador escolher a posição da peça, a posição escolhida vai ser verificada e se for válida o predicado `move(CurrentBoard, L-C-O-Color, NextBoard)` vai ser invocado. Este tem como função alterar o *CurrentBoard* e retornar em *NextBoard* o novo tabuleiro de jogo, já com o *Taijitu* na posição escolhida pelo jogador.
+O predicado `makeMove` vai inicialmente pedir o input do jogador *Player* e *CurrentBoard* para este escolher a posição onde quer colocar a peça. Após o jogador escolher a posição da peça, a posição escolhida vai ser verificada e se for válida o predicado `move(CurrentBoard, L-C-O-Color, NextBoard)` vai ser invocado. Este tem como função alterar o *CurrentBoard* e retornar em *NextBoard* o novo tabuleiro de jogo, já com o *Taijitu* na posição escolhida pelo jogador. Está implementado da seguinte forma:
 
-### Final do Jogo -- TO DO
+```prolog
+move(GameState, L-C-O-Color, NewGameState) :-
+    orientation(O, L-C, BL-BC),
+    nth1(L, GameState, RowBeforeWhite),
+    replace(RowBeforeWhite, C, Color, RowPlacedWhite),
+    replace(GameState, L, RowPlacedWhite, BoardPlacedWhite),
+    nth1(BL, BoardPlacedWhite, RowBeforeBlack),
+    next_player(Color, NextColor),
+    replace(RowBeforeBlack, BC, NextColor, RowPlacedBlack),
+    replace(BoardPlacedWhite, BL, RowPlacedBlack, NewGameState).
+```
 
-O jogo *Taiji* termina quando não existe mais nenhuma jogada possível. Quando isto ocorre o predicado `endOfGame` vai ter sucesso e vai ser obtido o vencedor do jogo. 
+### Final do Jogo
 
-O vencedor do jogo é calculado com o auxilio da função `calculateWinner` que vai obter o maior grupo de peças brancas e o maior número de peças pretas. Posteriormente vai ser calculado qual dos dois grupos é o maior. O vencedor é aquele que tiver o maior grupo.
+O jogo *Taiji* termina quando não existe mais nenhuma jogada possível. Quando isto ocorre, o predicado `game_over` vai ter sucesso e vai ser obtido o vencedor do jogo.
 
-Caso os grupos possuam o mesmo tamanho, o jogador preto é o vencedor, uma vez que é o branco que começa o jogo.
+O vencedor do jogo é calculado com o auxilio da função `calculateWinner` que vai obter o maior grupo de peças brancas e o maior número de peças pretas. Posteriormente vai ser calculado qual dos dois grupos é o maior, e o vencedor é aquele que tiver o maior grupo.
+
+Caso os grupos possuam o mesmo tamanho, o jogador preto é o vencedor, de acordo com as regras do jogo original, uma vez que é o branco que começa o jogo.
 
 
-### Avaliação do Tabuleiro -- TO DO
+### Avaliação do Tabuleiro
+
 O nosso predicado `value(Board, Color, NumberColor)` vai avaliar o tabuleiro e retornar em `NumberColor` o valor do maior grupo da cor `Color`, sendo auxiliada do predicado `calculateLargestGroup` que vai encontrar o maior grupo da mesma cor no tabuleiro.
 
+```prolog
+value(Board, Color, NumberColor) :-
+    abolish(processed/2),
+    assert(processed(-1, -1)),      % Ensure that predicate processed/2 exists, to avoid errors while trying to instantiate it
+    calculateLargestGroup(Color, 1-1, [], Board, 0, 0, NumberColor).
+```
 
-### Jogada do Computador -- TO DO
+### Jogada do Computador
 
 Quando o jogador deseja jogar contra o computador ou apenas visualizar dois computadores a jogar entre si, este pode escolher dois níveis de dificuldade distintos.
 
-- Nível de dificuldade aleatório, em que o computador escolhe uma jogada entre uma das jogadas válidas.
-- Nível de dificuldade ganancioso, em que o computador tenta a cada jogada maximizar a sua pontuação atual, isto é, aumentar o seu maior grupo.
+- Nível de dificuldade aleatório, em que o computador escolhe aleatoriamente uma jogada de entre as jogadas válidas.
+- Nível de dificuldade inteligente, em que o computador tenta a cada jogada maximizar a sua pontuação atual, isto é, aumentar o seu maior grupo.
 
 No caso do jogo em dificuldade aleatória é invocado o predicado `choose_move(GameState, Player, random, L-C-O)` em que apenas irá ser escolhida uma jogada aleatória da lista de jogadas válidas obtida através do predicado `valid_moves`. 
 
-O nível de dificuldade ganancioso é invocado pelo predicado `choose_move(GameState, Player, intelligent, L-C-O)` em que o computador irá calcular o valor do tabuleiro após cada uma das jogadas possíveis utilizando o predicado `calculateValueMove(GameState, Color, RangeList, PossibleMoves, ValueMove)`. São escolhidas então as jogadas que mais beneficiam o computador através do predicado `select_best_moves`. Quando os melhores movimentos estiverem determinados, o computador escolhe um deles aleatóriamente (uma vez que todos os movimentos vão trazer o mesmo incremento de pontuação para o computador).
+O nível de dificuldade inteligente é invocado pelo predicado `choose_move(GameState, Player, intelligent, L-C-O)` em que o computador irá calcular o valor do tabuleiro após cada uma das jogadas possíveis utilizando o predicado `calculateValueMove(GameState, Color, RangeList, PossibleMoves, ValueMove)`. São escolhidas então as jogadas que mais beneficiam o computador através do predicado `select_best_moves`. Quando os melhores movimentos estiverem determinados, o computador escolhe um deles aleatoriamente (uma vez que todos os movimentos vão trazer o mesmo incremento de pontuação para o computador).
 
-## Conclusões  -- TO DO
+## Conclusões
 
-O projeto teve como principal objetivo aplicar aquilo que aprendemos quer durante as aulas teóricas como práticas e permitiu a implementação de um jogo de tabuleiro para dois jogadores na linguagem PROLOG. Ao  longo  do  desenvolvimento  deste  projeto,  encontramos  algumas dificuldades que foram superadas quer com a ajuda do professor quer com recurso a informação existente online.
+O projeto teve como principal objetivo aplicar aquilo que aprendemos, tanto nas aulas teóricas como nas práticas, e permitiu a implementação de um jogo de tabuleiro para dois jogadores na linguagem PROLOG. Ao  longo  do  desenvolvimento  deste  projeto,  encontramos  algumas dificuldades que foram superadas quer com a ajuda do professor quer com recurso a informação existente online.
 
 A elaboração deste trabalho permitiu-nos ainda aperfeiçoar o nosso conhecimento e destreza em  programação lógica que até este semestre era inexistente.
 Também aprendemos a ter um melhor raciocinio recursivo, uma vez que esta é uma das bases da programação lógica.
 
-O trabalho  foi  concluído  com  bastante sucesso,  e  o  seu  desenvolvimento contribuiu para melhorarmos e aprofundarmos o conhecimento desta linguagem de programação.
+O trabalho  foi  concluído  com  bastante sucesso, uma vez que conseguimos alcançar todas as metas pedidas no enunciado, e  o  seu  desenvolvimento contribuiu para melhorarmos e aprofundarmos o conhecimento desta linguagem de programação.
 
 ---
 ## Bibliografia
 
-- [https://nestorgames.com/rulebooks/TAIJI_EN4.pdf](https://nestorgames.com/rulebooks/TAIJI_EN4.pdf)
+- [https://nestorgames.com/rulebooks/TAIJI_EN4.pdf](https://nestorgames.com/rulebooks/TAIJI_EN4.pdf) - Regras do jogo original
+
+- [https://sicstus.sics.se/sicstus/docs/latest4/html/sicstus.html/index.html](https://sicstus.sics.se/sicstus/docs/latest4/html/sicstus.html/index.html) - SICStus documentation
