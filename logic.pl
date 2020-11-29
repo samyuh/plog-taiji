@@ -264,6 +264,23 @@ next_player(white, black).
 next_player(black, white).
 
 % ------------------------------------------------------------------------------------------------------------------------- %
+%                                   Get Difficulty of Bot to play in the current turn                                       %
+%   Prototype:                                                                                                              %
+%       next_difficulty(+Color, +DifficultyWhite, +DifficultyBlack, -Difficulty)                                            %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Color -> The color of the bot to play in the current turn                                                           %
+%       DifficultyWhite -> The difficulty chosen for the White Bot                                                          %
+%       DifficultyBlack -> The difficulty chosen for the Black Bot                                                          %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Difficulty -> The difficulty of the bot to play in the current turn                                                 %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
+next_difficulty(white, DifficultyWhite, _, DifficultyWhite).
+next_difficulty(black, _, DifficultyBlack, DifficultyBlack).
+
+% ------------------------------------------------------------------------------------------------------------------------- %
 %                                      Return Player Type (Used in mode Player VS Computer)                                 %
 %   Prototype:                                                                                                              %
 %       return_player_type(+ChosenColor, +PlayerColor, -PlayerType, +Difficulty)                                            %
@@ -389,19 +406,18 @@ showResult(Winner, Number) :-
     write(Number), write(' Taijitus.'), nl.
 
 % ------------------------------------------------------------------------------------------------------------------------- %
-%                                               Show Results of the game                                                    %
+%                                             Calculate Winner of the Game                                                  %
 %   Prototype:                                                                                                              %
-%       showResult(+Winner, +Number)                                                                                        %
+%       calculateWinner(+Board, -Player, -Number)                                                                           %
 %                                                                                                                           %
 %   Inputs:                                                                                                                 %
-%       Winner -> The winner of the game                                                                                    %
-%       Number -> The number of cells of the biggest group achieved by the Winner                                           %
+%       Board -> The final board of the game                                                                                %
 %                                                                                                                           %
 %   Outputs:                                                                                                                %
-%       Presentes the results of the game to the screen                                                                     %
+%       Player -> The winner of the game                                                                                    %
+%       Number -> The number of cells of the biggest group achieved by the Winner                                           %
 % ------------------------------------------------------------------------------------------------------------------------- %
 
-% calculateWinner(Board, Player) -> Analyze the final Board and return the Player who has won the game
 calculateWinner(Board, Player, Number) :-
     value(Board, white, NumberWhite),
     value(Board, black, NumberBlack),
@@ -414,26 +430,68 @@ get_winner(NumberWhite, NumberBlack, Player, Number) :-
 get_winner(_, NumberBlack, Player, Number) :-
     Player = black, Number = NumberBlack.
 
-% value(Color,  Board, NumberColor) -> Return in NumberColor the number of cells of the biggest group with color Color, in the Board
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                            Value of the biggest group of a color                                          %
+%   Prototype:                                                                                                              %
+%       value(+Board, +Color, -NumberColor)                                                                                 %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Board -> The final board of the game                                                                                %
+%       Color -> The color to calculate the biggest group of this color                                                     %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       NumberColor -> The number of cells of the biggest group of color Color in the Board                                 %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 value(Board, Color, NumberColor) :-
     abolish(processed/2),
-    assert(processed(-1, -1)),      % MELHOR MANEIRA DO QUE ESTA PARA PREDICADO EXISTIR??
+    assert(processed(-1, -1)),      % Ensure that predicate processed/2 exists, to avoid errors while trying to instantiate it
     calculateLargestGroup(Color, 1-1, [], Board, 0, 0, NumberColor).
 
-% value(Color,  Board, NumberColor) -> Return in NumberColor the number of cells of the biggest group with color Color, in the Board, which can be extended (it is not surrounded by other color)
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                             Value of the biggest group of a color, which can be expanded                                  %
+%   Prototype:                                                                                                              %
+%       best_possible_value(+Board, +Color, -NumberColor, -BiggestGroup)                                                    %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Board -> The final board of the game                                                                                %
+%       Color -> The color to calculate the biggest group of this color                                                     %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       NumberColor -> The number of cells of the biggest group of color Color in the Board, possible to expand             %
+%       BiggestGroup -> List with the cells of the biggest group of color Color in the Board, possible to expand            %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 best_possible_value(Board, Color, NumberColor, BiggestGroup) :-
     abolish(processed/2),
-    assert(processed(-1, -1)),      % MELHOR MANEIRA DO QUE ESTA PARA PREDICADO EXISTIR??
+    assert(processed(-1, -1)),      % Ensure that predicate processed/2 exists, to avoid errors while trying to instantiate it
     calculateLargestPossibleGroup(Color, 1-1, [], Board, 0, 0, NumberColor, [], BiggestGroup).
 
-% calculateLargestGroup(Color, Cell, Queue, Board, AccNumber, MaxNumber, NumberColor) -> Searching groups of color Color, Cell being explored (format: Line-Column), Queue has the cells to process in the currnt group,
-% Board is the final board, AccNumber has the number of cells processed of the current group, MaxNumber has the maximum number of cells of a group with color Color until the moment, NumberColor will have the number of cells of the biggest group of color Color
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                             Calculate largest group of color Color in the Board                                           %
+%   Prototype:                                                                                                              %
+%       calculateLargestGroup(+Color, +Cell, +Queue, +Board, +AccNumber, +MaxNumber, -NumberColor)                          %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Color -> The color which we want to calculate the largest group of this color                                       %
+%       Cell -> The cell being explored at the moment, in the format L-C (Line-Column). It begins with the value 1-1        %
+%       Queue -> List with the cells to be processed, while analyzing a group. It begins empty ([])                         %
+%       Board -> The final board of the game                                                                                %
+%       AccNumber -> Counter of the current number of the cells already processed of the group being processed. It begins   %
+%                    with value 0                                                                                           %
+%       MaxNumber -> Contains the number of cells of the biggest group found so far. It begins with value 0                 %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       NumberColor -> The number of cells of the biggest group of color Color in the Board                                 %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
-% Final Case -> Cell being explored is the last in the Board ([Length, Length]) : Copy BiggestNumber to NumberColor
+% Final Case -> Cell being explored is the last in the Board ([Length, Length])
+% Do -> Copy BiggestNumber to NumberColor
 calculateLargestGroup(_, Length-Length, [], Board, _, NumberColor, NumberColor) :-
     length(Board, Length).
 
-% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with the desired Color : Process Cell and fill Queue with the next Cells of the group to process
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with the desired Color
+% Do -> Process Cell and fill Queue with the next Cells of the group to process
 calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
     get_value(L, C, Board, Color),
     \+ processed(L, C),
@@ -442,7 +500,8 @@ calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
     List \= [],
     calculateLargestGroup(Color, L-C, List, Board, 1, BiggestNumber, NumberColor), !.
 
-% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with different color of Color : Process Cell and explore the next cell
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with different color of Color
+% Do -> Process Cell and explore the next cell
 calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
     \+ get_value(L, C, Board, Color),
     \+ processed(L, C),
@@ -452,14 +511,16 @@ calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
     DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor), !.
 
-% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a cell already processed : Ignore cell, and explore next cell
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a cell already processed
+% Do -> Ignore cell, and explore next cell
 calculateLargestGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor) :-
     length(Board, Length),
     Mod is mod(C, Length), NewC is Mod + 1,
     DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor).
 
-% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is not processed : Process adjacent cell, increase AccNumber and add its adjacent cells to Queue
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is not processed
+% Do -> Process adjacent cell, increase AccNumber and add its adjacent cells to Queue
 calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor) :-
     \+ processed(OL, OC),
     assert(processed(OL, OC)),
@@ -468,12 +529,14 @@ calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumb
     NewAccNumber is AccNumber + 1,
     calculateLargestGroup(Color, L-C, NewList, Board, NewAccNumber, BiggestNumber, NumberColor), !.
 
-% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is already processed : Ignore adjacent cell
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is already processed
+% Do -> Ignore adjacent cell
 calculateLargestGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor) :-
     processed(OL, OC),
     calculateLargestGroup(Color, L-C, List, Board, AccNumber, BiggestNumber, NumberColor), !.
 
-% Case where we finished processing a group (Empty Queue, AccNumber \= 0) : Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell
+% Case where we finished processing a group (Empty Queue, AccNumber \= 0)
+% Do -> Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell
 calculateLargestGroup(Color, L-C, [], Board, AccNumber, BiggestNumber, NumberColor) :-
     AccNumber > BiggestNumber,
     length(Board, Length),
@@ -481,7 +544,21 @@ calculateLargestGroup(Color, L-C, [], Board, AccNumber, BiggestNumber, NumberCol
     DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestGroup(Color, NewL-NewC, [], Board, 0, AccNumber, NumberColor), !.
 
-% get_next_cells(Color, Row, Column, Board, List) -> return in List the adjacent cells to the cell [Row, Column] in the Board, with color Color
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                   Get Next Cells to process, of the color Color                                           %
+%   Prototype:                                                                                                              %
+%       get_next_cells(+Color, +L, +C, +Board, -List)                                                                       %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Color -> The color of the group we're exploring                                                                     %
+%       L -> The line of the cell which we want to get adjacent cells with same color                                       %
+%       C -> The column of the cell which we want to get adjacent cells with same color                                     %
+%       Board -> The state of the current board                                                                             %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       List -> List with all cells adjacent to the cell with Line L and Column C, which must have color Color              %
+% ------------------------------------------------------------------------------------------------------------------------- %
+
 get_next_cells(Color, L, C, Board, List) :-
     NextL is L + 1, PreviousL is L - 1, NextC is C + 1, PreviousC is C - 1,
     get_value(PreviousL, C, Board, UpValue),
@@ -498,21 +575,32 @@ get_next([[L, C, Color]|Rest], Color, AccList, List) :-
 get_next([[_, _, _]|Rest], Color, AccList, List) :-
     get_next(Rest, Color, AccList, List).
 
-% -------------------------------------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------------------------ %
+%                               Calculate largest group of color Color in the Board, possible to expand                                      %
+%   Prototype:                                                                                                                               %
+%       calculateLargestPossibleGroup(+Color, +Cell, +Queue, +Board, +AccNumber, +MaxNumber, -NumberColor, +AccGroup, -BiggestGroup)         %
+%                                                                                                                                            %
+%   Inputs:                                                                                                                                  %
+%       Color -> The color which we want to calculate the largest expandable group of this color                                             %
+%       Cell -> The cell being explored at the moment, in the format L-C (Line-Column). It begins with the value 1-1                         %
+%       Queue -> List with the cells to be processed, while analyzing a group. It begins empty ([])                                          %
+%       Board -> The state of the current board                                                                                              %
+%       AccNumber -> Counter of the current number of the cells already processed of the group being processed. It begins with value 0       %
+%       MaxNumber -> Contains the number of cells of the biggest expandable group found so far. It begins with value 0                       %
+%       AccGroup -> List that contains the cells of the group being processed. It begins empty ([])                                          %
+%                                                                                                                                            %
+%   Outputs:                                                                                                                                 %
+%       NumberColor -> The number of cells of the biggest expandable group of color Color in the Board                                       %
+%       BiggestGroup -> List that contains the cells of the biggest expandable group with color Color                                        %
+% ------------------------------------------------------------------------------------------------------------------------------------------ %
 
-next_difficulty(white, DifficultyWhite, _, DifficultyWhite).
-next_difficulty(black, _, DifficultyBlack, DifficultyBlack).
-
-% ----------------------------------------------------------- SE DER BORRADA APAGAR - TENTATIVA BOT MAIS INTELIGENTE --------------------------------------------------------------
-
-% calculateLargestGroup(Color, Cell, Queue, Board, AccNumber, MaxNumber, NumberColor) -> Searching groups of color Color, Cell being explored (format: Line-Column), Queue has the cells to process in the currnt group,
-% Board is the final board, AccNumber has the number of cells processed of the current group, MaxNumber has the maximum number of cells of a group with color Color until the moment, NumberColor will have the number of cells of the biggest group of color Color
-
-% Final Case -> Cell being explored is the last in the Board ([Length, Length]) : Copy BiggestNumber to NumberColor
+% Final Case -> Cell being explored is the last in the Board ([Length, Length])
+% Do -> Copy BiggestNumber to NumberColor
 calculateLargestPossibleGroup(_, Length-Length, [], Board, _, NumberColor, NumberColor, _, _) :-
     length(Board, Length).
 
-% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with the desired Color : Process Cell and fill Queue with the next Cells of the group to process
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with the desired Color
+% Do -> Process Cell and fill Queue with the next Cells of the group to process. Add Cell to AccGroup
 calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
     get_value(L, C, Board, Color),
     \+ processed(L, C),
@@ -521,7 +609,8 @@ calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberCol
     List \= [],
     calculateLargestPossibleGroup(Color, L-C, List, Board, 1, BiggestNumber, NumberColor, [L-C|AccGroup], BiggestGroup), !.
 
-% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with different color of Color : Process Cell and explore the next cell
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a not-processed cell with different color of Color
+% Do -> Process Cell and explore the next cell
 calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
     \+ get_value(L, C, Board, Color),
     \+ processed(L, C),
@@ -531,14 +620,16 @@ calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberCol
     DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestPossibleGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup), !.
 
-% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a cell already processed : Ignore cell, and explore next cell
+% Case where we're not processing any group (Empty Queue, AccNumber = 0), and we find a cell already processed
+% Do -> Ignore cell, and explore next cell
 calculateLargestPossibleGroup(Color, L-C, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
     length(Board, Length),
     Mod is mod(C, Length), NewC is Mod + 1,
     DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestPossibleGroup(Color, NewL-NewC, [], Board, 0, BiggestNumber, NumberColor, AccGroup, BiggestGroup).
 
-% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is not processed : Process adjacent cell, increase AccNumber and add its adjacent cells to Queue
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is not processed
+% Do -> Process adjacent cell, increase AccNumber and add its adjacent cells to Queue. Add cell to AccGroup
 calculateLargestPossibleGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
     \+ processed(OL, OC),
     assert(processed(OL, OC)),
@@ -547,12 +638,14 @@ calculateLargestPossibleGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, Big
     NewAccNumber is AccNumber + 1,
     calculateLargestPossibleGroup(Color, L-C, NewList, Board, NewAccNumber, BiggestNumber, NumberColor, [OL-OC|AccGroup], BiggestGroup), !.
 
-% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is already processed : Ignore adjacent cell
+% Case where we're processing a group (Queue not empty, AccNumber \= 0), and adjacent cell is already processed
+% Do -> Ignore adjacent cell
 calculateLargestPossibleGroup(Color, L-C, [[OL, OC]|List], Board, AccNumber, BiggestNumber, NumberColor, AccGroup, BiggestGroup) :-
     processed(OL, OC),
     calculateLargestPossibleGroup(Color, L-C, List, Board, AccNumber, BiggestNumber, NumberColor, AccGroup, BiggestGroup), !.
 
-% Case where we finished processing a group (Empty Queue, AccNumber \= 0) : Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell
+% Case where we finished processing a group (Empty Queue, AccNumber \= 0)
+% Do ->  Substitute BiggestNumber, since the group found has a larger number of cells, and explore next cell. Substitute BiggestGroup with AccGroup, and reset AccGroup
 calculateLargestPossibleGroup(Color, L-C, [], Board, AccNumber, BiggestNumber, NumberColor, AccGroup, _) :-
     AccNumber > BiggestNumber,
     possible_to_increase(AccGroup, Board),
@@ -560,6 +653,19 @@ calculateLargestPossibleGroup(Color, L-C, [], Board, AccNumber, BiggestNumber, N
     Mod is mod(C, Length), NewC is Mod + 1,
     DivInt is div(C, Length), NewL is L + DivInt,
     calculateLargestPossibleGroup(Color, NewL-NewC, [], Board, 0, AccNumber, NumberColor, [], AccGroup), !.
+
+% ------------------------------------------------------------------------------------------------------------------------- %
+%                                               Check if Group is Expandable                                                %
+%   Prototype:                                                                                                              %
+%       possible_to_increase(+Group, +Board)                                                                                %
+%                                                                                                                           %
+%   Inputs:                                                                                                                 %
+%       Group -> The group to analyse if it's expandable                                                                    %
+%       Board -> The state of the current board                                                                             %
+%                                                                                                                           %
+%   Outputs:                                                                                                                %
+%       Sucess if the group Group is expandable (not surrounded by occupied cells), fail otherwise                          %
+% ------------------------------------------------------------------------------------------------------------------------- %
 
 possible_to_increase([], _) :- fail.
 possible_to_increase([Cell|_], Board) :-
