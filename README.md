@@ -29,8 +29,9 @@
 ### Windows
 - Abrir o SICStus Prolog
 - No menu Settings, escolher Font e selecionar tipo de letra Consolas.
-- Abrir o ficheiro main.pl
+- No menu File, escolher Consult e selecionar o ficheiro [main.pl](./main.pl)
 - Executar o comando play. e jogar o jogo.
+
 ### Linux
 
 ---

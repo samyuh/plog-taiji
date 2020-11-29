@@ -187,7 +187,7 @@ choose_move(GameState, Player, random, L-C-O) :-
 choose_move(GameState, Player, intelligent, L-C-O) :-
     valid_moves(GameState, Player, PossibleMoves),
     length(GameState, Length),
-    lista_ate(Length, RangeList),
+    numlist(1, Length, RangeList),
     setof(Move, calculateValueMove(GameState, Player, RangeList, PossibleMoves, Move), Moves),
     select_best_moves(Moves, [], BestMoves, _),
     length(BestMoves, NumberMoves),
