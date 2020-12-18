@@ -1,4 +1,4 @@
-# Relatório Intermédio - PLOG
+# Relatório - PLOG
 
 #### Jogo: Taiji
 **Grupo**: Taiji_3
